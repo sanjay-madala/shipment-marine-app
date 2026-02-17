@@ -584,6 +584,7 @@ const NPM = {
 
     // ========== EIR ==========
     // Flow: EIR Out first (container leaves port) → then EIR In (container returns)
+    // Full SAP-style form with Container Detail + Truck Detail sections
     createEIR(shipId, containerId, direction) {
         const s = npmShipments.find(x => x.id === shipId);
         if (!s) return;
@@ -610,48 +611,202 @@ const NPM = {
             return;
         }
 
-        const dirLabel = direction === 'out' ? t('eirOut') : t('eirIn');
+        const booking = s.bookings.find(b => b.bookingNo === c.bookingNo);
+        const dirLabel = direction === 'out' ? t('gateOut') : t('gateIn');
+        const eirNum = Math.floor(Math.random() * 9000) + 1000;
+        const now = new Date();
+        const dateStr = now.toISOString().slice(0, 10);
+        const timeStr = now.toISOString().slice(11, 16);
+
         openModal(`
             <div class="modal-header">
-                <h2>${dirLabel} &mdash; ${containerId}</h2>
+                <h2>${direction === 'out' ? t('eirOut') : t('eirIn')} &mdash; ${containerId}</h2>
                 <button class="modal-close" onclick="closeModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="info-grid" style="margin-bottom:20px">
-                    <div class="info-item"><label>${t('containerId')}</label><div class="value" style="font-family:monospace">${containerId}</div></div>
-                    <div class="info-item"><label>${t('size')} / ${t('containerType')}</label><div class="value">${c.size}' ${c.type}</div></div>
-                    <div class="info-item"><label>${t('bookingNo')}</label><div class="value">${c.bookingNo}</div></div>
-                    <div class="info-item"><label>${t('sealNo')}</label><div class="value">${c.sealNo}</div></div>
+                <!-- EIR Header -->
+                <div style="background:var(--gray-50);padding:12px 16px;border-radius:8px;margin-bottom:16px;border:1px solid var(--gray-200)">
+                    <div class="form-grid-3">
+                        <div class="form-group">
+                            <label>${t('event')}</label>
+                            <select id="eir-event">
+                                <option value="check-in" ${direction === 'in' ? 'selected' : ''}>${t('checkInOnly')}</option>
+                                <option value="check-out" ${direction === 'out' ? 'selected' : ''}>${t('checkOutOnly')}</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>${dirLabel}</label>
+                            <input type="text" disabled value="${dirLabel}" style="font-weight:700;color:var(--primary)">
+                        </div>
+                        <div class="form-group">
+                            <label>${t('fiscalYear')}</label>
+                            <input type="text" disabled value="${now.getFullYear()}">
+                        </div>
+                        <div class="form-group">
+                            <label>${t('eirNo')}</label>
+                            <input type="text" disabled value="${eirNum}">
+                        </div>
+                        <div class="form-group">
+                            <label>${t('salesOrder')}</label>
+                            <input id="eir-salesorder" type="text" placeholder="e.g. 2108123573">
+                        </div>
+                        <div class="form-group">
+                            <label>${t('vesselShipment')}</label>
+                            <input type="text" disabled value="${s.id}">
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:16px;margin-top:8px">
+                        <label style="display:flex;align-items:center;gap:4px;font-size:12px"><input type="checkbox" id="eir-notreturning"> ${t('containerNotReturning')}</label>
+                        <label style="display:flex;align-items:center;gap:4px;font-size:12px"><input type="checkbox" id="eir-notclosed"> ${t('containerNotClosed')}</label>
+                        <label style="display:flex;align-items:center;gap:4px;font-size:12px"><input type="checkbox" id="eir-canceldoc"> ${t('cancelDocument')}</label>
+                    </div>
                 </div>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>${t('truckNo')} <span class="req">*</span></label>
-                        <input id="eir-truck" type="text" placeholder="e.g. BKK-1234">
+
+                <!-- Container Detail Section -->
+                <div class="section-title">${t('containerDetail')}</div>
+                <div style="background:#fff;padding:12px 16px;border-radius:8px;border:1px solid var(--gray-200);margin-bottom:16px">
+                    <div class="form-grid-3">
+                        <div class="form-group">
+                            <label>${t('checkDate')}</label>
+                            <input id="eir-checkdate" type="date" value="${dateStr}">
+                        </div>
+                        <div class="form-group">
+                            <label>${t('checkTime')}</label>
+                            <input id="eir-checktime" type="time" value="${timeStr}">
+                        </div>
+                        <div class="form-group">
+                            <label>${t('reference')}</label>
+                            <input id="eir-reference" type="text" placeholder="e.g. CO 2026 716">
+                        </div>
+                        <div class="form-group">
+                            <label>${t('customerType')}</label>
+                            <select id="eir-custtype">
+                                <option value="EX" ${booking && booking.sts === 'E' ? 'selected' : ''}>EX - Export</option>
+                                <option value="IM" ${booking && booking.sts === 'F' ? 'selected' : ''}>IM - Import</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>${t('containerId')}</label>
+                            <input type="text" disabled value="${containerId}" style="font-family:monospace;font-weight:700">
+                        </div>
+                        <div class="form-group">
+                            <label>${t('bookingNo')}</label>
+                            <input type="text" disabled value="${c.bookingNo}" style="font-weight:600">
+                        </div>
+                        <div class="form-group">
+                            <label>${t('size')} / ${t('containerType')}</label>
+                            <div style="display:flex;gap:4px">
+                                <input type="text" disabled value="${c.size}'" style="width:60px">
+                                <input type="text" disabled value="${c.type}" style="width:60px">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>${t('lineAgent')}</label>
+                            <input id="eir-lineagent" type="text" value="${booking ? booking.line : ''}">
+                        </div>
+                        <div class="form-group">
+                            <label>${t('containerStatus')}</label>
+                            <select id="eir-containerstatus">
+                                <option>FCL</option>
+                                <option>LCL</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>${t('forwarder')}</label>
+                            <input id="eir-forwarder" type="text" value="${booking ? booking.fw : ''}" placeholder="e.g. 1100895">
+                        </div>
+                        <div class="form-group">
+                            <label>${t('weight')} (TON)</label>
+                            <input id="eir-weight" type="text" value="${(c.weight / 1000).toFixed(3)}">
+                        </div>
+                        <div class="form-group">
+                            <label>${t('customerCode')}</label>
+                            <input id="eir-customer" type="text" value="${booking ? booking.shipper : ''}">
+                        </div>
+                        <div class="form-group">
+                            <label>${t('sealNo')}</label>
+                            <input type="text" disabled value="${c.sealNo}">
+                        </div>
+                        <div class="form-group">
+                            <label>${t('sVesselVoy')}</label>
+                            <input type="text" disabled value="${s.wbs}">
+                        </div>
+                        <div class="form-group">
+                            <label>${t('commodity')}</label>
+                            <input id="eir-commodity" type="text" value="${booking ? booking.cargo : ''}">
+                        </div>
+                        <div class="form-group">
+                            <label>${t('stuffingAt')}</label>
+                            <input id="eir-stuffing" type="text" value="${booking ? booking.stuffing : ''}" placeholder="e.g. CY, CFS">
+                        </div>
+                        <div class="form-group">
+                            <label>${t('marking')}</label>
+                            <input id="eir-marking" type="text" value="${booking ? (booking.marking || '') : ''}">
+                        </div>
+                        <div class="form-group">
+                            <label>${t('srNo')}</label>
+                            <input id="eir-srno" type="text" value="${booking ? (booking.srNo || '') : ''}">
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>${t('driverName')} <span class="req">*</span></label>
-                        <input id="eir-driver" type="text">
-                    </div>
-                    <div class="form-group">
-                        <label>${t('driverLicense')}</label>
-                        <input id="eir-license" type="text" placeholder="e.g. DL-001234">
-                    </div>
-                    <div class="form-group">
-                        <label>${t('truckType')}</label>
-                        <select id="eir-trucktype">
-                            <option>Trailer</option>
-                            <option>Flatbed</option>
-                            <option>Lowbed</option>
-                            <option>Side Loader</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>${t('dateTime')}</label>
-                        <input id="eir-time" type="datetime-local" value="${new Date().toISOString().slice(0,16)}">
-                    </div>
-                    <div class="form-group full-width">
-                        <label>${t('remarks')}</label>
-                        <textarea id="eir-remarks" rows="2" placeholder="${t('remarks')}"></textarea>
+                </div>
+
+                <!-- Truck Detail Section -->
+                <div class="section-title">${t('truckDetail')}</div>
+                <div style="background:var(--gray-50);padding:12px 16px;border-radius:8px;border:1px solid var(--gray-200)">
+                    <div class="form-grid-3">
+                        <div class="form-group">
+                            <label>${t('shipmentNoItem')}</label>
+                            <input id="eir-shipmentno" type="text" placeholder="e.g. 80001234">
+                        </div>
+                        <div class="form-group">
+                            <label>${t('itemNo')}</label>
+                            <input id="eir-itemno" type="text" value="0" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <span style="font-size:11px;color:var(--gray-400)">Item No. max 2</span>
+                        </div>
+                        <div class="form-group">
+                            <label>${t('truckHeadPlate')} <span class="req">*</span></label>
+                            <input id="eir-truckhead" type="text" placeholder="e.g. 83-0569">
+                        </div>
+                        <div class="form-group">
+                            <label>${t('officer')}</label>
+                            <input id="eir-officer" type="text">
+                        </div>
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                        </div>
+                        <div class="form-group">
+                            <label>${t('truckTailPlate')}</label>
+                            <input id="eir-trucktail" type="text" placeholder="e.g. 83-1051">
+                        </div>
+                        <div class="form-group">
+                            <label>${t('billNo')}</label>
+                            <input id="eir-billno" type="text" placeholder="e.g. 117089">
+                        </div>
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                        </div>
+                        <div class="form-group">
+                            <label>${t('carrier')} <span class="req">*</span></label>
+                            <input id="eir-carrier" type="text">
+                        </div>
+                        <div class="form-group">
+                            <label>${t('weighingSlipNo')}</label>
+                            <input id="eir-weighslip" type="text" placeholder="e.g. 01">
+                        </div>
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                        </div>
+                        <div class="form-group">
+                            <label>${t('driver')} <span class="req">*</span></label>
+                            <input id="eir-driver" type="text">
+                        </div>
+                        <div class="form-group full-width">
+                            <label>${t('remarks')}</label>
+                            <textarea id="eir-remarks" rows="2" placeholder="${t('remarks')}"></textarea>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -665,18 +820,47 @@ const NPM = {
     saveEIR(shipId, containerId, direction) {
         const s = npmShipments.find(x => x.id === shipId);
         const c = s.containers.find(x => x.id === containerId);
-        const truck = document.getElementById('eir-truck').value.trim();
+        const truckHead = document.getElementById('eir-truckhead').value.trim();
         const driver = document.getElementById('eir-driver').value.trim();
-        if (!truck || !driver) { showToast(t('truckAndDriverRequired'), 'error'); return; }
+        const carrier = document.getElementById('eir-carrier').value.trim();
+        if (!truckHead || !driver || !carrier) { showToast(t('truckAndDriverRequired'), 'error'); return; }
 
+        const checkDate = document.getElementById('eir-checkdate').value;
+        const checkTime = document.getElementById('eir-checktime').value;
         const eirNum = Math.floor(Math.random() * 9000) + 1000;
+
         const eir = {
             id: `EIR-${direction.toUpperCase()}-${eirNum}`,
-            time: document.getElementById('eir-time').value,
-            truckNo: truck,
+            time: `${checkDate}T${checkTime}`,
+            // Header
+            event: document.getElementById('eir-event').value,
+            salesOrder: document.getElementById('eir-salesorder').value.trim(),
+            containerNotReturning: document.getElementById('eir-notreturning').checked,
+            containerNotClosed: document.getElementById('eir-notclosed').checked,
+            // Container Detail
+            checkDate, checkTime,
+            reference: document.getElementById('eir-reference').value.trim(),
+            customerType: document.getElementById('eir-custtype').value,
+            lineAgent: document.getElementById('eir-lineagent').value.trim(),
+            containerStatus: document.getElementById('eir-containerstatus').value,
+            forwarder: document.getElementById('eir-forwarder').value.trim(),
+            weight: document.getElementById('eir-weight').value.trim(),
+            customer: document.getElementById('eir-customer').value.trim(),
+            commodity: document.getElementById('eir-commodity').value.trim(),
+            stuffingAt: document.getElementById('eir-stuffing').value.trim(),
+            marking: document.getElementById('eir-marking').value.trim(),
+            srNo: document.getElementById('eir-srno').value.trim(),
+            // Truck Detail
+            shipmentNo: document.getElementById('eir-shipmentno').value.trim(),
+            itemNo: document.getElementById('eir-itemno').value.trim(),
+            truckNo: truckHead,
+            truckHeadPlate: truckHead,
+            truckTailPlate: document.getElementById('eir-trucktail').value.trim(),
+            officer: document.getElementById('eir-officer').value.trim(),
+            billNo: document.getElementById('eir-billno').value.trim(),
+            carrier: carrier,
+            weighingSlipNo: document.getElementById('eir-weighslip').value.trim(),
             driverName: driver,
-            driverLicense: document.getElementById('eir-license').value.trim(),
-            truckType: document.getElementById('eir-trucktype').value,
             remarks: document.getElementById('eir-remarks').value.trim(),
             status: 'completed',
         };
