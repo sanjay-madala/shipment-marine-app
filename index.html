@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shipment Marine</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-left">
+            <div class="logo">&#9875; Shipment Marine</div>
+            <div class="module-switcher">
+                <button class="module-btn active" data-module="scm">SCM &mdash; Tug Operations</button>
+                <button class="module-btn" data-module="npm">NPM &mdash; Container Shipping</button>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="lang-switcher">
+                <button class="lang-btn active" data-lang="en" onclick="setLang('en')">EN</button>
+                <button class="lang-btn" data-lang="th" onclick="setLang('th')">TH</button>
+            </div>
+            <span class="site-badge" id="currentSite">BKK</span>
+            <span class="user-info">&#9787; Admin</span>
+        </div>
+    </header>
+
+    <!-- SCM Module -->
+    <div id="scm-module" class="module">
+        <nav class="sidebar">
+            <a class="nav-item active" data-view="scm-tug-list">Tug Schedules</a>
+            <a class="nav-item" data-view="scm-shipment-list">Shipments</a>
+        </nav>
+        <main class="content" id="scm-content"></main>
+    </div>
+
+    <!-- NPM Module -->
+    <div id="npm-module" class="module hidden">
+        <nav class="sidebar">
+            <a class="nav-item active" data-view="npm-shipment-list">Shipments</a>
+            <a class="nav-item" data-view="npm-eir-list">EIR</a>
+            <a class="nav-item" data-view="npm-inspection">Inspection</a>
+        </nav>
+        <main class="content" id="npm-content"></main>
+    </div>
+
+    <!-- Modal overlay -->
+    <div class="modal-overlay hidden" id="modalOverlay">
+        <div class="modal" id="modalContent"></div>
+    </div>
+
+    <script src="i18n.js"></script>
+    <script src="data.js"></script>
+    <script src="scm.js"></script>
+    <script src="npm.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,595 @@
+// ========== INTERNATIONALIZATION ==========
+
+const TRANSLATIONS = {
+    en: {
+        // Header
+        appName: '⚓ Shipment Marine',
+        scmModule: 'SCM — Tug Operations',
+        npmModule: 'NPM — Container Shipping',
+        admin: '☻ Admin',
+
+        // Common
+        all: 'All',
+        total: 'Total',
+        draft: 'Draft',
+        open: 'Open',
+        dispatch: 'Dispatched',
+        completed: 'Completed',
+        cancelled: 'Cancelled',
+        status: 'Status',
+        actions: 'Actions',
+        view: 'View',
+        edit: 'Edit',
+        cancel: 'Cancel',
+        confirm: 'Confirm',
+        save: 'Save',
+        close: 'Close',
+        search: 'Search',
+        back: 'Back',
+        create: 'Create',
+        add: 'Add',
+        delete: 'Delete',
+        print: 'Print',
+        yes: 'Yes',
+        no: 'No',
+        pending: 'Pending',
+        na: 'N/A',
+        notAssigned: 'Not assigned',
+        noResults: 'No results found',
+        required: 'required',
+        site: 'Site',
+        createdAt: 'Created',
+        matched: 'Matched',
+
+        // SCM - Tug Schedules
+        tugSchedules: 'Tug Schedules',
+        newTugSchedule: '+ New Tug Schedule',
+        uploadFile: '↑ Upload File',
+        createTugSchedule: 'Create Tug Schedule',
+        editTugSchedule: 'Edit Tug Schedule',
+        uploadTugSchedule: 'Upload Tug Schedule',
+        agentOwner: 'Agent / Owner',
+        vessel: 'Vessel',
+        grt: 'GRT',
+        loa: 'LOA',
+        port: 'Port',
+        jobType: 'Job Type',
+        scope: 'Scope',
+        workDateTime: 'Work Date & Time',
+        workDate: 'Work Date',
+        activity: 'Activity Operation',
+        service: 'Service',
+        pilotMaster: 'Pilot / Master',
+        freeText: 'Free text',
+        selectVessel: '-- Select --',
+        autoFromVessel: 'Auto from vessel',
+        confirmSchedule: 'Confirm',
+        tugAssignment: 'Sales BOM Items — Tug Assignment',
+        assignTugsHint: 'Assign tug boats to enable dispatch',
+        item: 'Item',
+        description: 'Description',
+        unit: 'Unit',
+        tugBoat: 'Tug Boat',
+        wbs: 'WBS',
+        selectTug: '-- Select Tug --',
+        dispatchBtn: '▶ Dispatch',
+        confirmDispatch: 'Dispatch',
+        shipmentsCreated: 'Shipments Created',
+        shipmentId: 'Shipment ID',
+        noTugSchedules: 'No tug schedules found',
+        extractedPreview: 'Extracted Tug Schedules (Preview)',
+        extractedHint: 'tug schedules extracted from file. Review and confirm to set status to Open.',
+        uploadClickHint: 'Click to upload Excel or PDF file',
+        uploadMultiHint: '1 file can contain multiple tug schedules',
+        confirmAllDrafts: 'Confirm All Drafts',
+        tugScheduleConfirmed: 'confirmed — status changed to Open',
+        tugScheduleCreated: 'Tug Schedule {id} created',
+        tugSchedulesUploaded: '{count} tug schedules uploaded as Draft',
+        changesSaved: 'Changes saved',
+        dispatched: '{id} dispatched — {count} shipment(s) created',
+        saveChanges: 'Save Changes',
+        createSchedule: 'Create Schedule',
+
+        // SCM - Shipments
+        shipments: 'Shipments',
+        order: 'Order',
+        agent: 'Agent',
+        bomItem: 'BOM Item',
+        noShipments: 'No shipments yet. Dispatch a tug schedule to create shipments.',
+        fromOrder: 'From Order',
+        tug: 'Tug',
+
+        // SCM - Report In
+        reportIn: '⏱ Report-In',
+        reportInTitle: 'Report-In — Time Stages',
+        startReportIn: 'Start Report-In',
+        reportType: 'Report Type',
+        customer: 'Customer',
+        internal: 'Internal',
+        recordNow: 'Record Now',
+        reportInStarted: 'Report-In started',
+        stageRecorded: '{stage} recorded at {time}',
+        stageStart: 'Start',
+        stageStandby1: 'Stand by #1',
+        stageWork1: 'Work Period #1',
+        stageStandby2: 'Stand by #2',
+        stageWork2: 'Work Period #2',
+        stageStandby3: 'Stand by #3',
+        stageWork3: 'Work Period #3',
+        stageLast: 'Last',
+
+        // NPM - Shipments
+        containerShipments: 'Container Shipments',
+        newShipment: '+ New Shipment',
+        uploadExcel: '↑ Upload Excel',
+        createContainerShipment: 'Create Container Shipment',
+        vesselName: 'Vessel Name',
+        voyageNo: 'Voyage No.',
+        etd: 'ETD',
+        bookings: 'Bookings',
+        containers: 'Containers',
+        createShipment: 'Create Shipment',
+        uploadForecast: 'Upload Shipment / Forecast',
+        uploadForecastHint: 'Click to upload Excel forecast file',
+        uploadForecastDesc: 'System will extract vessel, voyage, and booking information',
+        forecastExtracted: 'Forecast Data Extracted',
+        shipmentCreatedFromForecast: 'Shipment created from forecast upload',
+
+        // NPM - Bookings
+        shipper: 'Shipper',
+        fw: 'FW',
+        bookingNo: 'Booking No.',
+        cargo: 'Cargo (Commodity)',
+        line: 'Line',
+        sts: 'Sts',
+        size: 'Size',
+        qty: 'Qty',
+        stuffing: 'Stuffing',
+        marking: 'Marking',
+        srNo: 'SR No.',
+        docType: 'Doc Type',
+        export: 'Export',
+        import: 'Import',
+        exportShort: 'E - Export',
+        importShort: 'F - Import',
+        addBooking: '+ Add Booking',
+        bookingAdded: 'Booking added',
+        bookingLines: 'Booking Lines',
+
+        // NPM - Loading List
+        uploadLoadingList: '↑ Upload Loading List',
+        uploadContainerLoading: 'Upload Container Loading List',
+        uploadLoadingHint: 'Upload container loading list (Excel)',
+        uploadLoadingDesc: 'System will match containers to booking numbers',
+        confirmLoadingList: 'Confirm Loading List',
+        previewContainers: 'Preview: {count} containers matched',
+        containersLoaded: '{count} containers loaded',
+        noContainersLoaded: 'No containers loaded. Upload a loading list to add containers.',
+        loadContainersFirst: 'Load containers first to manage EIR records.',
+
+        // NPM - Containers
+        containerId: 'Container ID',
+        containerType: 'Type',
+        sealNo: 'Seal No.',
+        weight: 'Weight (kg)',
+        inspected: 'Inspected',
+
+        // NPM - EIR
+        eir: 'EIR',
+        eirManagement: 'EIR Management',
+        eirIn: 'EIR In',
+        eirOut: 'EIR Out',
+        eirInDone: 'EIR In Done',
+        eirOutDone: 'EIR Out Done',
+        pendingEirIn: 'Pending EIR In',
+        quickEirLookup: 'Quick EIR Lookup',
+        enterContainerOrShipment: 'Enter Container ID or Shipment No.',
+        allContainerEir: 'All Container EIR Records',
+        createEirIn: 'Create EIR In',
+        createEirOut: 'Create EIR Out',
+        truckNo: 'Truck No.',
+        driverName: 'Driver Name',
+        dateTime: 'Date / Time',
+        inTime: 'In Time',
+        inTruck: 'In Truck',
+        outTime: 'Out Time',
+        outTruck: 'Out Truck',
+        createEir: 'Create EIR',
+        eirCreated: 'EIR {dir} created for {id}',
+        printingEir: 'Printing 3 copies of EIR for {id}...',
+        noContainersAvailable: 'No containers available',
+        foundShipment: 'Found shipment',
+        viewShipment: 'View Shipment',
+
+        // NPM - EIR Inspection Warning
+        inspectionWarning: '⚠ Inspection Warning',
+        containerNotInspected: 'Container {id} has not been inspected yet.',
+        completeInspectionFirst: 'Please complete the container inspection before creating an EIR record.',
+        goToInspection: 'Go to Inspection',
+
+        // NPM - Inspection
+        containerInspection: 'Container Inspection',
+        inspectContainer: 'Inspect Container',
+        enterContainerId: 'Enter Container ID',
+        inspectionStatus: 'Inspection Status',
+        inspector: 'Inspector',
+        date: 'Date',
+        inspect: 'Inspect',
+        inspectorName: 'Inspector Name',
+        inspectionChecklist: 'Inspection Checklist',
+        saveInspection: 'Save Inspection',
+        inspectionCompleted: 'Inspection completed for {id}',
+        inspectionReport: 'Inspection Report',
+        result: 'Result',
+        allPassed: 'All Passed',
+        issues: '{count} issue(s)',
+        noteIfDamaged: 'Note (if damaged)',
+        containerInspected: 'Container {id} has been inspected by {inspector} on {date}.',
+        viewDetails: 'View Details',
+        containerNotInspectedYet: 'Container {id} has not been inspected yet.',
+        startInspection: 'Start Inspection',
+        containerNotFound: 'Container "{id}" not found in any shipment.',
+        noContainersForInspection: 'No containers available for inspection',
+
+        // Checklist categories
+        catExterior: 'Exterior',
+        catInterior: 'Interior',
+        catDoor: 'Door',
+        catMarkings: 'Markings',
+
+        // Checklist items
+        chkRoof: 'Exterior - Roof',
+        chkSideLeft: 'Exterior - Side Panels (Left)',
+        chkSideRight: 'Exterior - Side Panels (Right)',
+        chkFrontWall: 'Exterior - Front Wall',
+        chkDoorEnd: 'Exterior - Door End',
+        chkUnderstructure: 'Exterior - Understructure',
+        chkFloor: 'Interior - Floor',
+        chkWalls: 'Interior - Walls',
+        chkCeiling: 'Interior - Ceiling',
+        chkCleanliness: 'Interior - Cleanliness',
+        chkHinges: 'Door - Hinges & Gaskets',
+        chkLocking: 'Door - Locking Mechanism',
+        chkCSC: 'Markings - CSC Plate',
+        chkContainerNo: 'Markings - Container Number',
+
+        // NPM - Dispatch
+        shipmentDispatched: '{id} dispatched',
+        containersNotMatched: '{count} container(s) not matched to bookings',
+        shipmentCreated: 'Shipment {id} created',
+        vesselAndVoyRequired: 'Vessel and Voyage are required',
+        shipperAndBookingRequired: 'Shipper and Booking No. required',
+        truckAndDriverRequired: 'Truck and Driver required',
+        inspectorNameRequired: 'Inspector name required',
+        pleaseSelectVessel: 'Please select a vessel',
+        totalContainers: 'Total Containers',
+    },
+
+    th: {
+        // Header
+        appName: '⚓ ระบบขนส่งทางทะเล',
+        scmModule: 'SCM — ปฏิบัติการเรือลาก',
+        npmModule: 'NPM — ขนส่งตู้คอนเทนเนอร์',
+        admin: '☻ ผู้ดูแลระบบ',
+
+        // Common
+        all: 'ทั้งหมด',
+        total: 'ทั้งหมด',
+        draft: 'ฉบับร่าง',
+        open: 'เปิด',
+        dispatch: 'จัดส่งแล้ว',
+        completed: 'เสร็จสิ้น',
+        cancelled: 'ยกเลิก',
+        status: 'สถานะ',
+        actions: 'การดำเนินการ',
+        view: 'ดู',
+        edit: 'แก้ไข',
+        cancel: 'ยกเลิก',
+        confirm: 'ยืนยัน',
+        save: 'บันทึก',
+        close: 'ปิด',
+        search: 'ค้นหา',
+        back: 'ย้อนกลับ',
+        create: 'สร้าง',
+        add: 'เพิ่ม',
+        delete: 'ลบ',
+        print: 'พิมพ์',
+        yes: 'ใช่',
+        no: 'ไม่',
+        pending: 'รอดำเนินการ',
+        na: 'ไม่มี',
+        notAssigned: 'ยังไม่ได้กำหนด',
+        noResults: 'ไม่พบผลลัพธ์',
+        required: 'จำเป็น',
+        site: 'สถานที่',
+        createdAt: 'สร้างเมื่อ',
+        matched: 'ตรงกัน',
+
+        // SCM - Tug Schedules
+        tugSchedules: 'ตารางเรือลาก',
+        newTugSchedule: '+ สร้างตารางเรือลากใหม่',
+        uploadFile: '↑ อัปโหลดไฟล์',
+        createTugSchedule: 'สร้างตารางเรือลาก',
+        editTugSchedule: 'แก้ไขตารางเรือลาก',
+        uploadTugSchedule: 'อัปโหลดตารางเรือลาก',
+        agentOwner: 'ตัวแทน / เจ้าของ',
+        vessel: 'เรือสินค้า',
+        grt: 'GRT',
+        loa: 'LOA',
+        port: 'ท่าเรือ',
+        jobType: 'ประเภทงาน',
+        scope: 'ขอบเขต',
+        workDateTime: 'วันที่และเวลาทำงาน',
+        workDate: 'วันที่ทำงาน',
+        activity: 'กิจกรรมปฏิบัติการ',
+        service: 'บริการ',
+        pilotMaster: 'นำร่อง / กัปตัน',
+        freeText: 'ข้อความอิสระ',
+        selectVessel: '-- เลือก --',
+        autoFromVessel: 'อัตโนมัติจากเรือ',
+        confirmSchedule: 'ยืนยัน',
+        tugAssignment: 'รายการ Sales BOM — กำหนดเรือลาก',
+        assignTugsHint: 'กำหนดเรือลากเพื่อเปิดใช้การจัดส่ง',
+        item: 'รายการ',
+        description: 'รายละเอียด',
+        unit: 'หน่วย',
+        tugBoat: 'เรือลาก',
+        wbs: 'WBS',
+        selectTug: '-- เลือกเรือลาก --',
+        dispatchBtn: '▶ จัดส่ง',
+        confirmDispatch: 'จัดส่ง',
+        shipmentsCreated: 'การจัดส่งที่สร้างแล้ว',
+        shipmentId: 'รหัสการจัดส่ง',
+        noTugSchedules: 'ไม่พบตารางเรือลาก',
+        extractedPreview: 'ตารางเรือลากที่ดึงข้อมูล (ตัวอย่าง)',
+        extractedHint: 'ตารางเรือลากที่ดึงจากไฟล์ ตรวจสอบและยืนยันเพื่อเปลี่ยนสถานะเป็นเปิด',
+        uploadClickHint: 'คลิกเพื่ออัปโหลดไฟล์ Excel หรือ PDF',
+        uploadMultiHint: '1 ไฟล์สามารถมีตารางเรือลากได้มากกว่า 1 รายการ',
+        confirmAllDrafts: 'ยืนยันร่างทั้งหมด',
+        tugScheduleConfirmed: 'ยืนยันแล้ว — สถานะเปลี่ยนเป็นเปิด',
+        tugScheduleCreated: 'สร้างตารางเรือลาก {id} แล้ว',
+        tugSchedulesUploaded: 'อัปโหลด {count} ตารางเรือลากเป็นฉบับร่าง',
+        changesSaved: 'บันทึกการเปลี่ยนแปลงแล้ว',
+        dispatched: '{id} จัดส่งแล้ว — สร้าง {count} การจัดส่ง',
+        saveChanges: 'บันทึกการเปลี่ยนแปลง',
+        createSchedule: 'สร้างตาราง',
+
+        // SCM - Shipments
+        shipments: 'การจัดส่ง',
+        order: 'คำสั่ง',
+        agent: 'ตัวแทน',
+        bomItem: 'รายการ BOM',
+        noShipments: 'ยังไม่มีการจัดส่ง จัดส่งตารางเรือลากเพื่อสร้างการจัดส่ง',
+        fromOrder: 'จากคำสั่ง',
+        tug: 'เรือลาก',
+
+        // SCM - Report In
+        reportIn: '⏱ รายงานเข้า',
+        reportInTitle: 'รายงานเข้า — ช่วงเวลา',
+        startReportIn: 'เริ่มรายงานเข้า',
+        reportType: 'ประเภทรายงาน',
+        customer: 'ลูกค้า',
+        internal: 'ภายใน',
+        recordNow: 'บันทึกตอนนี้',
+        reportInStarted: 'เริ่มรายงานเข้าแล้ว',
+        stageRecorded: 'บันทึก {stage} เมื่อ {time}',
+        stageStart: 'เริ่มต้น',
+        stageStandby1: 'เตรียมพร้อม #1',
+        stageWork1: 'ช่วงทำงาน #1',
+        stageStandby2: 'เตรียมพร้อม #2',
+        stageWork2: 'ช่วงทำงาน #2',
+        stageStandby3: 'เตรียมพร้อม #3',
+        stageWork3: 'ช่วงทำงาน #3',
+        stageLast: 'สิ้นสุด',
+
+        // NPM - Shipments
+        containerShipments: 'การจัดส่งตู้คอนเทนเนอร์',
+        newShipment: '+ สร้างการจัดส่งใหม่',
+        uploadExcel: '↑ อัปโหลด Excel',
+        createContainerShipment: 'สร้างการจัดส่งตู้คอนเทนเนอร์',
+        vesselName: 'ชื่อเรือ',
+        voyageNo: 'หมายเลขเที่ยวเรือ',
+        etd: 'เวลาออกเรือ (ETD)',
+        bookings: 'การจอง',
+        containers: 'ตู้คอนเทนเนอร์',
+        createShipment: 'สร้างการจัดส่ง',
+        uploadForecast: 'อัปโหลดการจัดส่ง / พยากรณ์',
+        uploadForecastHint: 'คลิกเพื่ออัปโหลดไฟล์ Excel พยากรณ์',
+        uploadForecastDesc: 'ระบบจะดึงข้อมูลเรือ เที่ยวเรือ และการจอง',
+        forecastExtracted: 'ข้อมูลพยากรณ์ที่ดึงแล้ว',
+        shipmentCreatedFromForecast: 'สร้างการจัดส่งจากไฟล์พยากรณ์แล้ว',
+
+        // NPM - Bookings
+        shipper: 'ผู้ส่งสินค้า',
+        fw: 'FW',
+        bookingNo: 'เลขที่การจอง',
+        cargo: 'สินค้า (ชนิดสินค้า)',
+        line: 'สายเรือ',
+        sts: 'สถานะ',
+        size: 'ขนาด',
+        qty: 'จำนวน',
+        stuffing: 'การบรรจุ',
+        marking: 'เครื่องหมาย',
+        srNo: 'เลขที่ SR',
+        docType: 'ประเภทเอกสาร',
+        export: 'ส่งออก',
+        import: 'นำเข้า',
+        exportShort: 'E - ส่งออก',
+        importShort: 'F - นำเข้า',
+        addBooking: '+ เพิ่มการจอง',
+        bookingAdded: 'เพิ่มการจองแล้ว',
+        bookingLines: 'รายการจอง',
+
+        // NPM - Loading List
+        uploadLoadingList: '↑ อัปโหลดรายการบรรทุก',
+        uploadContainerLoading: 'อัปโหลดรายการบรรทุกตู้คอนเทนเนอร์',
+        uploadLoadingHint: 'อัปโหลดรายการบรรทุกตู้คอนเทนเนอร์ (Excel)',
+        uploadLoadingDesc: 'ระบบจะจับคู่ตู้คอนเทนเนอร์กับหมายเลขการจอง',
+        confirmLoadingList: 'ยืนยันรายการบรรทุก',
+        previewContainers: 'ตัวอย่าง: จับคู่ {count} ตู้คอนเทนเนอร์',
+        containersLoaded: 'โหลด {count} ตู้คอนเทนเนอร์แล้ว',
+        noContainersLoaded: 'ยังไม่มีตู้คอนเทนเนอร์ อัปโหลดรายการบรรทุกเพื่อเพิ่มตู้',
+        loadContainersFirst: 'โหลดตู้คอนเทนเนอร์ก่อนเพื่อจัดการบันทึก EIR',
+
+        // NPM - Containers
+        containerId: 'รหัสตู้คอนเทนเนอร์',
+        containerType: 'ประเภท',
+        sealNo: 'เลขที่ซีล',
+        weight: 'น้ำหนัก (กก.)',
+        inspected: 'ตรวจสอบแล้ว',
+
+        // NPM - EIR
+        eir: 'EIR',
+        eirManagement: 'จัดการ EIR',
+        eirIn: 'EIR เข้า',
+        eirOut: 'EIR ออก',
+        eirInDone: 'EIR เข้าเสร็จ',
+        eirOutDone: 'EIR ออกเสร็จ',
+        pendingEirIn: 'รอ EIR เข้า',
+        quickEirLookup: 'ค้นหา EIR ด่วน',
+        enterContainerOrShipment: 'ป้อนรหัสตู้คอนเทนเนอร์หรือเลขที่จัดส่ง',
+        allContainerEir: 'บันทึก EIR ตู้คอนเทนเนอร์ทั้งหมด',
+        createEirIn: 'สร้าง EIR เข้า',
+        createEirOut: 'สร้าง EIR ออก',
+        truckNo: 'เลขที่รถบรรทุก',
+        driverName: 'ชื่อคนขับ',
+        dateTime: 'วันที่ / เวลา',
+        inTime: 'เวลาเข้า',
+        inTruck: 'รถเข้า',
+        outTime: 'เวลาออก',
+        outTruck: 'รถออก',
+        createEir: 'สร้าง EIR',
+        eirCreated: 'สร้าง EIR {dir} สำหรับ {id} แล้ว',
+        printingEir: 'กำลังพิมพ์ EIR 3 ชุดสำหรับ {id}...',
+        noContainersAvailable: 'ไม่มีตู้คอนเทนเนอร์',
+        foundShipment: 'พบการจัดส่ง',
+        viewShipment: 'ดูการจัดส่ง',
+
+        // NPM - EIR Inspection Warning
+        inspectionWarning: '⚠ คำเตือนการตรวจสอบ',
+        containerNotInspected: 'ตู้คอนเทนเนอร์ {id} ยังไม่ได้รับการตรวจสอบ',
+        completeInspectionFirst: 'กรุณาทำการตรวจสอบตู้คอนเทนเนอร์ก่อนสร้างบันทึก EIR',
+        goToInspection: 'ไปที่การตรวจสอบ',
+
+        // NPM - Inspection
+        containerInspection: 'ตรวจสอบตู้คอนเทนเนอร์',
+        inspectContainer: 'ตรวจสอบตู้',
+        enterContainerId: 'ป้อนรหัสตู้คอนเทนเนอร์',
+        inspectionStatus: 'สถานะการตรวจสอบ',
+        inspector: 'ผู้ตรวจสอบ',
+        date: 'วันที่',
+        inspect: 'ตรวจสอบ',
+        inspectorName: 'ชื่อผู้ตรวจสอบ',
+        inspectionChecklist: 'รายการตรวจสอบ',
+        saveInspection: 'บันทึกการตรวจสอบ',
+        inspectionCompleted: 'ตรวจสอบ {id} เสร็จสิ้น',
+        inspectionReport: 'รายงานการตรวจสอบ',
+        result: 'ผลลัพธ์',
+        allPassed: 'ผ่านทั้งหมด',
+        issues: '{count} ปัญหา',
+        noteIfDamaged: 'หมายเหตุ (หากเสียหาย)',
+        containerInspected: 'ตู้คอนเทนเนอร์ {id} ได้รับการตรวจสอบโดย {inspector} เมื่อ {date}',
+        viewDetails: 'ดูรายละเอียด',
+        containerNotInspectedYet: 'ตู้คอนเทนเนอร์ {id} ยังไม่ได้รับการตรวจสอบ',
+        startInspection: 'เริ่มตรวจสอบ',
+        containerNotFound: 'ไม่พบตู้คอนเทนเนอร์ "{id}" ในการจัดส่งใดๆ',
+        noContainersForInspection: 'ไม่มีตู้คอนเทนเนอร์สำหรับตรวจสอบ',
+
+        // Checklist categories
+        catExterior: 'ภายนอก',
+        catInterior: 'ภายใน',
+        catDoor: 'ประตู',
+        catMarkings: 'เครื่องหมาย',
+
+        // Checklist items
+        chkRoof: 'ภายนอก - หลังคา',
+        chkSideLeft: 'ภายนอก - แผงข้าง (ซ้าย)',
+        chkSideRight: 'ภายนอก - แผงข้าง (ขวา)',
+        chkFrontWall: 'ภายนอก - ผนังหน้า',
+        chkDoorEnd: 'ภายนอก - ด้านประตู',
+        chkUnderstructure: 'ภายนอก - โครงสร้างใต้ท้อง',
+        chkFloor: 'ภายใน - พื้น',
+        chkWalls: 'ภายใน - ผนัง',
+        chkCeiling: 'ภายใน - เพดาน',
+        chkCleanliness: 'ภายใน - ความสะอาด',
+        chkHinges: 'ประตู - บานพับและปะเก็น',
+        chkLocking: 'ประตู - กลไกล็อค',
+        chkCSC: 'เครื่องหมาย - แผ่น CSC',
+        chkContainerNo: 'เครื่องหมาย - หมายเลขตู้คอนเทนเนอร์',
+
+        // NPM - Dispatch
+        shipmentDispatched: '{id} จัดส่งแล้ว',
+        containersNotMatched: '{count} ตู้คอนเทนเนอร์ไม่ตรงกับการจอง',
+        shipmentCreated: 'สร้างการจัดส่ง {id} แล้ว',
+        vesselAndVoyRequired: 'ต้องระบุเรือและเที่ยวเรือ',
+        shipperAndBookingRequired: 'ต้องระบุผู้ส่งสินค้าและเลขที่การจอง',
+        truckAndDriverRequired: 'ต้องระบุรถบรรทุกและคนขับ',
+        inspectorNameRequired: 'ต้องระบุชื่อผู้ตรวจสอบ',
+        pleaseSelectVessel: 'กรุณาเลือกเรือ',
+        totalContainers: 'ตู้คอนเทนเนอร์ทั้งหมด',
+    },
+};
+
+// Checklist label mapping
+const CHECKLIST_I18N_MAP = {
+    'CHK01': 'chkRoof', 'CHK02': 'chkSideLeft', 'CHK03': 'chkSideRight',
+    'CHK04': 'chkFrontWall', 'CHK05': 'chkDoorEnd', 'CHK06': 'chkUnderstructure',
+    'CHK07': 'chkFloor', 'CHK08': 'chkWalls', 'CHK09': 'chkCeiling',
+    'CHK10': 'chkCleanliness', 'CHK11': 'chkHinges', 'CHK12': 'chkLocking',
+    'CHK13': 'chkCSC', 'CHK14': 'chkContainerNo',
+};
+
+const CATEGORY_I18N_MAP = {
+    'Exterior': 'catExterior', 'Interior': 'catInterior',
+    'Door': 'catDoor', 'Markings': 'catMarkings',
+};
+
+const STAGE_I18N_MAP = {
+    'Start': 'stageStart', 'Stand by #1': 'stageStandby1', 'Work Period #1': 'stageWork1',
+    'Stand by #2': 'stageStandby2', 'Work Period #2': 'stageWork2',
+    'Stand by #3': 'stageStandby3', 'Work Period #3': 'stageWork3', 'Last': 'stageLast',
+};
+
+let currentLang = localStorage.getItem('shipment-marine-lang') || 'en';
+
+function t(key, params) {
+    let str = TRANSLATIONS[currentLang]?.[key] || TRANSLATIONS['en']?.[key] || key;
+    if (params) {
+        Object.keys(params).forEach(k => {
+            str = str.replace(`{${k}}`, params[k]);
+        });
+    }
+    return str;
+}
+
+function tStage(name) {
+    return STAGE_I18N_MAP[name] ? t(STAGE_I18N_MAP[name]) : name;
+}
+
+function tChecklist(id) {
+    return CHECKLIST_I18N_MAP[id] ? t(CHECKLIST_I18N_MAP[id]) : id;
+}
+
+function tCategory(cat) {
+    return CATEGORY_I18N_MAP[cat] ? t(CATEGORY_I18N_MAP[cat]) : cat;
+}
+
+function setLang(lang) {
+    currentLang = lang;
+    localStorage.setItem('shipment-marine-lang', lang);
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+    // Re-render header text
+    document.querySelector('.logo').innerHTML = t('appName');
+    document.querySelector('[data-module="scm"]').textContent = t('scmModule');
+    document.querySelector('[data-module="npm"]').textContent = t('npmModule');
+    document.querySelector('.user-info').innerHTML = t('admin');
+    // Update sidebar labels
+    document.querySelector('#scm-module .nav-item[data-view="scm-tug-list"]').textContent = t('tugSchedules');
+    document.querySelector('#scm-module .nav-item[data-view="scm-shipment-list"]').textContent = t('shipments');
+    document.querySelector('#npm-module .nav-item[data-view="npm-shipment-list"]').textContent = t('containerShipments');
+    document.querySelector('#npm-module .nav-item[data-view="npm-eir-list"]').textContent = t('eir');
+    document.querySelector('#npm-module .nav-item[data-view="npm-inspection"]').textContent = t('containerInspection');
+    // Re-render current views
+    SCM.navigate(SCM.currentView);
+    NPM.navigate(NPM.currentView);
+}
