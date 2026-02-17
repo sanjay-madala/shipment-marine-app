@@ -254,6 +254,9 @@ const NPM = {
         if (!s) return;
 
         const canDispatch = s.status === 'open' && s.containers.length > 0;
+        const canEdit = s.status === 'open';
+        // Check for mismatch containers
+        const mismatchContainers = s.containers.filter(c => !s.bookings.find(b => b.bookingNo === c.bookingNo));
 
         document.getElementById('npm-content').innerHTML = `
             <div class="detail-header">
@@ -264,10 +267,18 @@ const NPM = {
                 </div>
                 <div class="btn-group">
                     ${statusBadge(s.status)}
-                    ${s.status === 'open' ? `<button class="btn btn-outline" onclick="NPM.showLoadingListUpload('${s.id}')">${t('uploadLoadingList')}</button>` : ''}
+                    ${canEdit ? `<button class="btn btn-outline" onclick="NPM.showEditShipment('${s.id}')">${t('edit')}</button>` : ''}
+                    ${canEdit ? `<button class="btn btn-outline" onclick="NPM.showLoadingListUpload('${s.id}')">${t('uploadLoadingList')}</button>` : ''}
                     ${canDispatch ? `<button class="btn btn-warning" onclick="NPM.dispatchShipment('${s.id}')">${t('dispatchBtn')}</button>` : ''}
                 </div>
             </div>
+
+            ${mismatchContainers.length > 0 ? `
+                <div style="background:var(--danger-light);padding:12px 16px;border-radius:8px;margin-bottom:16px;border:1px solid var(--danger)">
+                    <strong style="color:var(--danger)">${t('containerMismatch')}</strong>
+                    ${mismatchContainers.map(c => `<div style="margin-top:4px;color:var(--danger)">${t('mismatchWarning', { id: c.id })}</div>`).join('')}
+                </div>
+            ` : ''}
 
             <div class="card" style="margin-bottom:20px">
                 <div class="card-body">
@@ -292,7 +303,7 @@ const NPM = {
                 <div class="card">
                     <div class="card-header">
                         <h3>${t('bookingLines')}</h3>
-                        ${s.status === 'open' ? `<button class="btn btn-primary btn-sm" onclick="NPM.showAddBooking('${s.id}')">${t('addBooking')}</button>` : ''}
+                        ${canEdit ? `<button class="btn btn-primary btn-sm" onclick="NPM.showAddBooking('${s.id}')">${t('addBooking')}</button>` : ''}
                     </div>
                     <div class="table-wrap">
                         <table>
@@ -324,21 +335,24 @@ const NPM = {
                     <div class="card-header"><h3>${t('containers')}</h3></div>
                     <div class="table-wrap">
                         <table>
-                            <thead><tr><th>${t('containerId')}</th><th>${t('bookingNo')}</th><th>${t('size')}</th><th>${t('containerType')}</th><th>${t('sealNo')}</th><th>${t('weight')}</th><th>${t('inspected')}</th><th>${t('eirIn')}</th><th>${t('eirOut')}</th></tr></thead>
+                            <thead><tr><th>${t('containerId')}</th><th>${t('bookingNo')}</th><th>${t('size')}</th><th>${t('containerType')}</th><th>${t('sealNo')}</th><th>${t('weight')}</th><th>${t('inspected')}</th><th>${t('eirOut')}</th><th>${t('eirIn')}</th><th></th></tr></thead>
                             <tbody>
-                                ${s.containers.length > 0 ? s.containers.map(c => `
-                                    <tr>
+                                ${s.containers.length > 0 ? s.containers.map(c => {
+                                    const isMismatch = !s.bookings.find(b => b.bookingNo === c.bookingNo);
+                                    return `
+                                    <tr style="${isMismatch ? 'background:var(--danger-light)' : ''}">
                                         <td><strong style="font-family:monospace">${c.id}</strong></td>
-                                        <td>${c.bookingNo}</td>
+                                        <td>${c.bookingNo} ${isMismatch ? `<span class="badge badge-cancelled">${t('containerMismatch')}</span>` : ''}</td>
                                         <td>${c.size}'</td>
                                         <td>${c.type}</td>
                                         <td>${c.sealNo}</td>
                                         <td>${c.weight.toLocaleString()}</td>
                                         <td>${c.inspected ? `<span style="color:var(--success)">&#10003; ${t('yes')}</span>` : `<span style="color:var(--danger)">&#10007; ${t('no')}</span>`}</td>
-                                        <td>${c.eirIn ? '&#10003; ' + formatDateTime(c.eirIn.time) : '-'}</td>
                                         <td>${c.eirOut ? '&#10003; ' + formatDateTime(c.eirOut.time) : '-'}</td>
-                                    </tr>
-                                `).join('') : `<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--gray-400)">${t('noContainersLoaded')}</td></tr>`}
+                                        <td>${c.eirIn ? '&#10003; ' + formatDateTime(c.eirIn.time) : '-'}</td>
+                                        <td>${isMismatch ? `<span style="color:var(--danger);font-size:12px">${t('mismatchWarning', { id: c.id })}</span>` : ''}</td>
+                                    </tr>`;
+                                }).join('') : `<tr><td colspan="10" style="text-align:center;padding:32px;color:var(--gray-400)">${t('noContainersLoaded')}</td></tr>`}
                             </tbody>
                         </table>
                     </div>
@@ -351,21 +365,24 @@ const NPM = {
                     <div class="card-header"><h3>${t('eir')}</h3></div>
                     <div class="table-wrap">
                         <table>
-                            <thead><tr><th>${t('containerId')}</th><th>${t('eirIn')}</th><th>${t('inTime')}</th><th>${t('inTruck')}</th><th>${t('eirOut')}</th><th>${t('outTime')}</th><th>${t('outTruck')}</th><th>${t('actions')}</th></tr></thead>
+                            <thead><tr><th>${t('containerId')}</th><th>${t('eirOut')}</th><th>${t('outTime')}</th><th>${t('outTruck')}</th><th>${t('driverLicense')}</th><th>${t('eirIn')}</th><th>${t('inTime')}</th><th>${t('inTruck')}</th><th>${t('actions')}</th></tr></thead>
                             <tbody>
                                 ${s.containers.map(c => `
                                     <tr>
                                         <td><strong style="font-family:monospace">${c.id}</strong></td>
-                                        <td>${c.eirIn ? `<span class="badge badge-completed">${c.eirIn.id}</span>` : '-'}</td>
-                                        <td>${c.eirIn ? formatDateTime(c.eirIn.time) : '-'}</td>
-                                        <td>${c.eirIn ? c.eirIn.truckNo : '-'}</td>
-                                        <td>${c.eirOut ? `<span class="badge badge-completed">${c.eirOut.id}</span>` : '-'}</td>
-                                        <td>${c.eirOut ? formatDateTime(c.eirOut.time) : '-'}</td>
-                                        <td>${c.eirOut ? c.eirOut.truckNo : '-'}</td>
+                                        <td>${c.eirOut ? `<span class="badge ${c.eirOut.status === 'cancelled' ? 'badge-cancelled' : 'badge-completed'}">${c.eirOut.id}</span>` : '-'}</td>
+                                        <td>${c.eirOut && c.eirOut.status !== 'cancelled' ? formatDateTime(c.eirOut.time) : '-'}</td>
+                                        <td>${c.eirOut && c.eirOut.status !== 'cancelled' ? c.eirOut.truckNo : '-'}</td>
+                                        <td>${c.eirOut && c.eirOut.status !== 'cancelled' ? (c.eirOut.driverLicense || '-') : '-'}</td>
+                                        <td>${c.eirIn ? `<span class="badge ${c.eirIn.status === 'cancelled' ? 'badge-cancelled' : 'badge-completed'}">${c.eirIn.id}</span>` : '-'}</td>
+                                        <td>${c.eirIn && c.eirIn.status !== 'cancelled' ? formatDateTime(c.eirIn.time) : '-'}</td>
+                                        <td>${c.eirIn && c.eirIn.status !== 'cancelled' ? c.eirIn.truckNo : '-'}</td>
                                         <td>
-                                            ${!c.eirIn ? `<button class="btn btn-success btn-sm" onclick="NPM.createEIR('${s.id}','${c.id}','in')">${t('eirIn')}</button>` : ''}
-                                            ${c.eirIn && !c.eirOut ? `<button class="btn btn-warning btn-sm" onclick="NPM.createEIR('${s.id}','${c.id}','out')">${t('eirOut')}</button>` : ''}
-                                            ${c.eirIn || c.eirOut ? `<button class="btn btn-outline btn-sm" onclick="NPM.printEIR('${c.id}')">${t('print')}</button>` : ''}
+                                            ${!c.eirOut || c.eirOut.status === 'cancelled' ? `<button class="btn btn-warning btn-sm" onclick="NPM.createEIR('${s.id}','${c.id}','out')">${t('eirOut')}</button>` : ''}
+                                            ${c.eirOut && c.eirOut.status !== 'cancelled' && (!c.eirIn || c.eirIn.status === 'cancelled') ? `<button class="btn btn-success btn-sm" onclick="NPM.createEIR('${s.id}','${c.id}','in')">${t('eirIn')}</button>` : ''}
+                                            ${c.eirOut && c.eirOut.status === 'completed' ? `<button class="btn btn-danger btn-sm" onclick="NPM.cancelEIR('${s.id}','${c.id}','out')">${t('cancelEir')}</button>` : ''}
+                                            ${c.eirIn && c.eirIn.status === 'completed' ? `<button class="btn btn-danger btn-sm" onclick="NPM.cancelEIR('${s.id}','${c.id}','in')">${t('cancelEir')}</button>` : ''}
+                                            ${(c.eirIn && c.eirIn.status !== 'cancelled') || (c.eirOut && c.eirOut.status !== 'cancelled') ? `<button class="btn btn-outline btn-sm" onclick="NPM.printEIR('${c.id}')">${t('print')}</button>` : ''}
                                         </td>
                                     </tr>
                                 `).join('')}
@@ -383,6 +400,48 @@ const NPM = {
         el.classList.add('active');
         el.closest('.content').querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
+    },
+
+    showEditShipment(shipId) {
+        const s = npmShipments.find(x => x.id === shipId);
+        if (!s) return;
+        openModal(`
+            <div class="modal-header">
+                <h2>${t('edit')} ${s.id}</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>${t('vesselName')}</label>
+                        <input id="es-vessel" type="text" value="${s.vesselName}">
+                    </div>
+                    <div class="form-group">
+                        <label>${t('voyageNo')}</label>
+                        <input id="es-voy" type="text" value="${s.voyNo}">
+                    </div>
+                    <div class="form-group">
+                        <label>${t('etd')}</label>
+                        <input id="es-etd" type="datetime-local" value="${s.etd}">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal()">${t('cancel')}</button>
+                <button class="btn btn-primary" onclick="NPM.saveEditShipment('${shipId}')">${t('saveChanges')}</button>
+            </div>
+        `);
+    },
+
+    saveEditShipment(shipId) {
+        const s = npmShipments.find(x => x.id === shipId);
+        if (!s) return;
+        s.vesselName = document.getElementById('es-vessel').value.trim();
+        s.voyNo = document.getElementById('es-voy').value.trim();
+        s.etd = document.getElementById('es-etd').value;
+        closeModal();
+        showToast(t('changesSaved'), 'success');
+        this.showDetail(shipId);
     },
 
     showAddBooking(shipId) {
@@ -524,6 +583,7 @@ const NPM = {
     },
 
     // ========== EIR ==========
+    // Flow: EIR Out first (container leaves port) → then EIR In (container returns)
     createEIR(shipId, containerId, direction) {
         const s = npmShipments.find(x => x.id === shipId);
         if (!s) return;
@@ -550,7 +610,7 @@ const NPM = {
             return;
         }
 
-        const dirLabel = direction === 'in' ? t('eirIn') : t('eirOut');
+        const dirLabel = direction === 'out' ? t('eirOut') : t('eirIn');
         openModal(`
             <div class="modal-header">
                 <h2>${dirLabel} &mdash; ${containerId}</h2>
@@ -573,8 +633,25 @@ const NPM = {
                         <input id="eir-driver" type="text">
                     </div>
                     <div class="form-group">
+                        <label>${t('driverLicense')}</label>
+                        <input id="eir-license" type="text" placeholder="e.g. DL-001234">
+                    </div>
+                    <div class="form-group">
+                        <label>${t('truckType')}</label>
+                        <select id="eir-trucktype">
+                            <option>Trailer</option>
+                            <option>Flatbed</option>
+                            <option>Lowbed</option>
+                            <option>Side Loader</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label>${t('dateTime')}</label>
                         <input id="eir-time" type="datetime-local" value="${new Date().toISOString().slice(0,16)}">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>${t('remarks')}</label>
+                        <textarea id="eir-remarks" rows="2" placeholder="${t('remarks')}"></textarea>
                     </div>
                 </div>
             </div>
@@ -598,15 +675,38 @@ const NPM = {
             time: document.getElementById('eir-time').value,
             truckNo: truck,
             driverName: driver,
+            driverLicense: document.getElementById('eir-license').value.trim(),
+            truckType: document.getElementById('eir-trucktype').value,
+            remarks: document.getElementById('eir-remarks').value.trim(),
             status: 'completed',
         };
 
-        if (direction === 'in') c.eirIn = eir;
-        else c.eirOut = eir;
+        if (direction === 'out') c.eirOut = eir;
+        else c.eirIn = eir;
 
-        const dirLabel = direction === 'in' ? t('eirIn') : t('eirOut');
+        const dirLabel = direction === 'out' ? t('eirOut') : t('eirIn');
         closeModal();
         showToast(t('eirCreated', { dir: dirLabel, id: containerId }), 'success');
+        this.showDetail(shipId);
+    },
+
+    cancelEIR(shipId, containerId, direction) {
+        const s = npmShipments.find(x => x.id === shipId);
+        if (!s) return;
+        const c = s.containers.find(x => x.id === containerId);
+        if (!c) return;
+
+        if (direction === 'out' && c.eirOut) {
+            const eirId = c.eirOut.id;
+            c.eirOut.status = 'cancelled';
+            // Also cancel EIR In if it exists
+            if (c.eirIn) c.eirIn.status = 'cancelled';
+            showToast(t('eirCancelled', { id: eirId }), 'success');
+        } else if (direction === 'in' && c.eirIn) {
+            const eirId = c.eirIn.id;
+            c.eirIn.status = 'cancelled';
+            showToast(t('eirCancelled', { id: eirId }), 'success');
+        }
         this.showDetail(shipId);
     },
 
@@ -623,15 +723,19 @@ const NPM = {
             });
         });
 
+        const activeEirOut = allContainers.filter(c => c.eirOut && c.eirOut.status !== 'cancelled');
+        const activeEirIn = allContainers.filter(c => c.eirIn && c.eirIn.status !== 'cancelled');
+        const pendingOut = allContainers.filter(c => !c.eirOut || c.eirOut.status === 'cancelled');
+
         document.getElementById('npm-content').innerHTML = `
             <div class="page-header">
                 <div class="page-title">${t('eirManagement')}</div>
             </div>
             <div class="stats-row">
                 <div class="stat-card"><div class="stat-value">${allContainers.length}</div><div class="stat-label">${t('totalContainers')}</div></div>
-                <div class="stat-card"><div class="stat-value">${allContainers.filter(c => c.eirIn).length}</div><div class="stat-label">${t('eirInDone')}</div></div>
-                <div class="stat-card"><div class="stat-value">${allContainers.filter(c => c.eirOut).length}</div><div class="stat-label">${t('eirOutDone')}</div></div>
-                <div class="stat-card"><div class="stat-value">${allContainers.filter(c => !c.eirIn).length}</div><div class="stat-label">${t('pendingEirIn')}</div></div>
+                <div class="stat-card"><div class="stat-value">${activeEirOut.length}</div><div class="stat-label">${t('eirOutDone')}</div></div>
+                <div class="stat-card"><div class="stat-value">${activeEirIn.length}</div><div class="stat-label">${t('eirInDone')}</div></div>
+                <div class="stat-card"><div class="stat-value">${pendingOut.length}</div><div class="stat-label">${t('pendingEirOut')}</div></div>
             </div>
 
             <div class="card" style="margin-bottom:20px">
@@ -652,7 +756,7 @@ const NPM = {
                 <div class="card-header"><h3>${t('allContainerEir')}</h3></div>
                 <div class="table-wrap">
                     <table>
-                        <thead><tr><th>${t('containerId')}</th><th>${t('shipmentId')}</th><th>${t('vessel')}</th><th>${t('size')}</th><th>${t('inspected')}</th><th>${t('eirIn')}</th><th>${t('eirOut')}</th><th>${t('actions')}</th></tr></thead>
+                        <thead><tr><th>${t('containerId')}</th><th>${t('shipmentId')}</th><th>${t('vessel')}</th><th>${t('size')}</th><th>${t('inspected')}</th><th>${t('eirOut')}</th><th>${t('eirIn')}</th><th>${t('actions')}</th></tr></thead>
                         <tbody>
                             ${allContainers.map(c => `
                                 <tr>
@@ -661,12 +765,12 @@ const NPM = {
                                     <td>${c.vesselName}</td>
                                     <td>${c.size}' ${c.type}</td>
                                     <td>${c.inspected ? '<span style="color:var(--success)">&#10003;</span>' : '<span style="color:var(--danger)">&#10007;</span>'}</td>
-                                    <td>${c.eirIn ? formatDateTime(c.eirIn.time) : '-'}</td>
-                                    <td>${c.eirOut ? formatDateTime(c.eirOut.time) : '-'}</td>
+                                    <td>${c.eirOut && c.eirOut.status !== 'cancelled' ? formatDateTime(c.eirOut.time) : (c.eirOut && c.eirOut.status === 'cancelled' ? `<span style="color:var(--danger)">${t('cancelled')}</span>` : '-')}</td>
+                                    <td>${c.eirIn && c.eirIn.status !== 'cancelled' ? formatDateTime(c.eirIn.time) : (c.eirIn && c.eirIn.status === 'cancelled' ? `<span style="color:var(--danger)">${t('cancelled')}</span>` : '-')}</td>
                                     <td>
-                                        ${!c.eirIn ? `<button class="btn btn-success btn-sm" onclick="NPM.createEIR('${c.shipmentId}','${c.id}','in')">${t('eirIn')}</button>` : ''}
-                                        ${c.eirIn && !c.eirOut ? `<button class="btn btn-warning btn-sm" onclick="NPM.createEIR('${c.shipmentId}','${c.id}','out')">${t('eirOut')}</button>` : ''}
-                                        ${c.eirIn || c.eirOut ? `<button class="btn btn-outline btn-sm" onclick="NPM.printEIR('${c.id}')">${t('print')}</button>` : ''}
+                                        ${!c.eirOut || c.eirOut.status === 'cancelled' ? `<button class="btn btn-warning btn-sm" onclick="NPM.createEIR('${c.shipmentId}','${c.id}','out')">${t('eirOut')}</button>` : ''}
+                                        ${c.eirOut && c.eirOut.status !== 'cancelled' && (!c.eirIn || c.eirIn.status === 'cancelled') ? `<button class="btn btn-success btn-sm" onclick="NPM.createEIR('${c.shipmentId}','${c.id}','in')">${t('eirIn')}</button>` : ''}
+                                        ${(c.eirIn && c.eirIn.status !== 'cancelled') || (c.eirOut && c.eirOut.status !== 'cancelled') ? `<button class="btn btn-outline btn-sm" onclick="NPM.printEIR('${c.id}')">${t('print')}</button>` : ''}
                                     </td>
                                 </tr>
                             `).join('')}
@@ -704,6 +808,8 @@ const NPM = {
         }
 
         if (found && shipment) {
+            const hasActiveOut = found.eirOut && found.eirOut.status !== 'cancelled';
+            const hasActiveIn = found.eirIn && found.eirIn.status !== 'cancelled';
             result.innerHTML = `
                 <div style="padding:16px;background:var(--success-light);border-radius:6px">
                     <div class="info-grid">
@@ -712,11 +818,12 @@ const NPM = {
                         <div class="info-item"><label>${t('vessel')}</label><div class="value">${shipment.vesselName}</div></div>
                         <div class="info-item"><label>${t('size')} / ${t('containerType')}</label><div class="value">${found.size}' ${found.type}</div></div>
                         <div class="info-item"><label>${t('inspected')}</label><div class="value">${found.inspected ? t('yes') : t('no')}</div></div>
-                        <div class="info-item"><label>${t('eirIn')}</label><div class="value">${found.eirIn ? formatDateTime(found.eirIn.time) : t('pending')}</div></div>
+                        <div class="info-item"><label>${t('eirOut')}</label><div class="value">${hasActiveOut ? formatDateTime(found.eirOut.time) : t('pending')}</div></div>
+                        <div class="info-item"><label>${t('eirIn')}</label><div class="value">${hasActiveIn ? formatDateTime(found.eirIn.time) : t('pending')}</div></div>
                     </div>
                     <div class="btn-group" style="margin-top:12px">
-                        ${!found.eirIn ? `<button class="btn btn-success btn-sm" onclick="NPM.createEIR('${shipment.id}','${found.id}','in')">${t('createEirIn')}</button>` : ''}
-                        ${found.eirIn && !found.eirOut ? `<button class="btn btn-warning btn-sm" onclick="NPM.createEIR('${shipment.id}','${found.id}','out')">${t('createEirOut')}</button>` : ''}
+                        ${!hasActiveOut ? `<button class="btn btn-warning btn-sm" onclick="NPM.createEIR('${shipment.id}','${found.id}','out')">${t('createEirOut')}</button>` : ''}
+                        ${hasActiveOut && !hasActiveIn ? `<button class="btn btn-success btn-sm" onclick="NPM.createEIR('${shipment.id}','${found.id}','in')">${t('createEirIn')}</button>` : ''}
                     </div>
                 </div>
             `;

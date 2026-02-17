@@ -15,6 +15,8 @@ const TRANSLATIONS = {
         open: 'Open',
         dispatch: 'Dispatched',
         completed: 'Completed',
+        review: 'Review',
+        closed: 'Closed',
         cancelled: 'Cancelled',
         status: 'Status',
         actions: 'Actions',
@@ -263,6 +265,31 @@ const TRANSLATIONS = {
         inspectorNameRequired: 'Inspector name required',
         pleaseSelectVessel: 'Please select a vessel',
         totalContainers: 'Total Containers',
+
+        // SCM - Review / Close
+        reviewStatus: 'Under Review',
+        closeShipment: 'Close',
+        adminReview: 'Admin Review',
+        reviewHint: 'All stages recorded. Admin can review and close.',
+        shipmentUnderReview: '{id} is now under review',
+        shipmentClosed: '{id} has been closed',
+        confirmClose: 'Close Shipment',
+        startTime: 'Start Time',
+        endTime: 'End Time',
+        adjustTime: 'Adjust Time',
+        manualTimeInput: 'Or enter manually:',
+        stageRequired: 'Required',
+        stageOptional: 'Optional',
+
+        // NPM - EIR expanded
+        driverLicense: 'Driver License',
+        truckType: 'Truck Type',
+        remarks: 'Remarks',
+        cancelEir: 'Cancel EIR',
+        eirCancelled: 'EIR {id} cancelled',
+        containerMismatch: 'Mismatch',
+        mismatchWarning: 'Container {id} does not match any booking!',
+        pendingEirOut: 'Pending EIR Out',
     },
 
     th: {
@@ -279,6 +306,8 @@ const TRANSLATIONS = {
         open: 'เปิด',
         dispatch: 'จัดส่งแล้ว',
         completed: 'เสร็จสิ้น',
+        review: 'ตรวจสอบ',
+        closed: 'ปิดแล้ว',
         cancelled: 'ยกเลิก',
         status: 'สถานะ',
         actions: 'การดำเนินการ',
@@ -527,6 +556,31 @@ const TRANSLATIONS = {
         inspectorNameRequired: 'ต้องระบุชื่อผู้ตรวจสอบ',
         pleaseSelectVessel: 'กรุณาเลือกเรือ',
         totalContainers: 'ตู้คอนเทนเนอร์ทั้งหมด',
+
+        // SCM - Review / Close
+        reviewStatus: 'อยู่ระหว่างตรวจสอบ',
+        closeShipment: 'ปิด',
+        adminReview: 'ผู้ดูแลตรวจสอบ',
+        reviewHint: 'บันทึกครบทุกขั้นตอนแล้ว ผู้ดูแลสามารถตรวจสอบและปิดได้',
+        shipmentUnderReview: '{id} อยู่ระหว่างตรวจสอบ',
+        shipmentClosed: '{id} ถูกปิดแล้ว',
+        confirmClose: 'ปิดการจัดส่ง',
+        startTime: 'เวลาเริ่ม',
+        endTime: 'เวลาสิ้นสุด',
+        adjustTime: 'ปรับเวลา',
+        manualTimeInput: 'หรือป้อนเอง:',
+        stageRequired: 'จำเป็น',
+        stageOptional: 'ไม่จำเป็น',
+
+        // NPM - EIR expanded
+        driverLicense: 'ใบอนุญาตขับขี่',
+        truckType: 'ประเภทรถ',
+        remarks: 'หมายเหตุ',
+        cancelEir: 'ยกเลิก EIR',
+        eirCancelled: 'ยกเลิก EIR {id} แล้ว',
+        containerMismatch: 'ไม่ตรงกัน',
+        mismatchWarning: 'ตู้คอนเทนเนอร์ {id} ไม่ตรงกับการจองใดๆ!',
+        pendingEirOut: 'รอ EIR ออก',
     },
 };
 

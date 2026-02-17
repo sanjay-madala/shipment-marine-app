@@ -18,10 +18,10 @@ const SCM = {
     // ========== TUG SCHEDULE LIST ==========
     renderTugList() {
         const counts = { all: scmTugSchedules.length };
-        ['draft', 'open', 'dispatch', 'completed'].forEach(s => counts[s] = scmTugSchedules.filter(t => t.status === s).length);
+        ['draft', 'open', 'dispatch', 'review', 'closed'].forEach(s => counts[s] = scmTugSchedules.filter(t => t.status === s).length);
         const filtered = this.statusFilter === 'all' ? scmTugSchedules : scmTugSchedules.filter(t => t.status === this.statusFilter);
 
-        const statusLabels = { all: t('all'), draft: t('draft'), open: t('open'), dispatch: t('dispatch'), completed: t('completed') };
+        const statusLabels = { all: t('all'), draft: t('draft'), open: t('open'), dispatch: t('dispatch'), review: t('review'), closed: t('closed') };
 
         document.getElementById('scm-content').innerHTML = `
             <div class="page-header">
@@ -36,10 +36,11 @@ const SCM = {
                 <div class="stat-card"><div class="stat-value">${counts.draft}</div><div class="stat-label">${t('draft')}</div></div>
                 <div class="stat-card"><div class="stat-value">${counts.open}</div><div class="stat-label">${t('open')}</div></div>
                 <div class="stat-card"><div class="stat-value">${counts.dispatch}</div><div class="stat-label">${t('dispatch')}</div></div>
-                <div class="stat-card"><div class="stat-value">${counts.completed}</div><div class="stat-label">${t('completed')}</div></div>
+                <div class="stat-card"><div class="stat-value">${counts.review}</div><div class="stat-label">${t('review')}</div></div>
+                <div class="stat-card"><div class="stat-value">${counts.closed}</div><div class="stat-label">${t('closed')}</div></div>
             </div>
             <div class="filters">
-                ${['all', 'draft', 'open', 'dispatch', 'completed'].map(s => `
+                ${['all', 'draft', 'open', 'dispatch', 'review', 'closed'].map(s => `
                     <span class="filter-chip ${this.statusFilter === s ? 'active' : ''}" onclick="SCM.statusFilter='${s}';SCM.renderTugList()">
                         ${statusLabels[s]}
                         <span class="filter-count">${counts[s] || 0}</span>
@@ -66,7 +67,6 @@ const SCM = {
                                     <td><span class="site-badge">${ts.site}</span></td>
                                     <td>
                                         <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();SCM.showDetail('${ts.id}')">${t('view')}</button>
-                                        ${ts.status === 'draft' ? `<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();SCM.confirmSchedule('${ts.id}')">${t('confirmSchedule')}</button>` : ''}
                                     </td>
                                 </tr>
                             `).join('')}
@@ -80,6 +80,7 @@ const SCM = {
 
     // ========== CREATE TUG SCHEDULE ==========
     showCreateForm() {
+        const defaultSite = 'BKK';
         openModal(`
             <div class="modal-header">
                 <h2>${t('createTugSchedule')}</h2>
@@ -93,7 +94,7 @@ const SCM = {
                     </div>
                     <div class="form-group">
                         <label>${t('site')} <span class="req">*</span></label>
-                        <select id="f-site">${MASTERS.sites.map(s => `<option>${s}</option>`).join('')}</select>
+                        <select id="f-site" onchange="SCM.onSiteChange()">${MASTERS.sites.map(s => `<option>${s}</option>`).join('')}</select>
                     </div>
                     <div class="form-group">
                         <label>${t('vessel')} <span class="req">*</span></label>
@@ -104,7 +105,7 @@ const SCM = {
                     </div>
                     <div class="form-group">
                         <label>${t('port')} <span class="req">*</span></label>
-                        <select id="f-port">${MASTERS.ports.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}</select>
+                        <select id="f-port">${getPortsForSite(defaultSite).map(p => `<option value="${p.id}">${p.name} — ${p.desc}</option>`).join('')}</select>
                     </div>
                     <div class="form-group">
                         <label>${t('grt')}</label>
@@ -147,6 +148,12 @@ const SCM = {
         `);
     },
 
+    onSiteChange() {
+        const site = document.getElementById('f-site').value;
+        const portSel = document.getElementById('f-port');
+        portSel.innerHTML = getPortsForSite(site).map(p => `<option value="${p.id}">${p.name} — ${p.desc}</option>`).join('');
+    },
+
     onVesselChange() {
         const vid = document.getElementById('f-vessel').value;
         const v = MASTERS.vessels.find(x => x.id === vid);
@@ -166,7 +173,7 @@ const SCM = {
 
         const ts = {
             id: generateId('TS', scmTugSchedules),
-            status: 'open',
+            status: 'draft',
             agent: MASTERS.customers.find(c => c.id === agentId),
             site: document.getElementById('f-site').value,
             vessel: MASTERS.vessels.find(v => v.id === vesselId),
@@ -191,7 +198,7 @@ const SCM = {
         if (ts && ts.status === 'draft') {
             ts.status = 'open';
             showToast(`${id} ${t('tugScheduleConfirmed')}`, 'success');
-            this.renderTugList();
+            this.showDetail(id);
         }
     },
 
@@ -262,8 +269,12 @@ const SCM = {
         const ts = scmTugSchedules.find(t => t.id === id);
         if (!ts) return;
 
-        const canAssignTugs = ts.status === 'open';
-        const canDispatch = ts.status === 'open' && ts.bomItems.filter(b => b.desc !== 'Standby Charge').every(b => b.tug);
+        const isDraft = ts.status === 'draft';
+        const isOpen = ts.status === 'open';
+        const canEdit = isDraft || isOpen;
+        const canAssignTugs = isOpen;
+        const canDispatch = isOpen && ts.bomItems.filter(b => b.desc !== 'Standby Charge').every(b => b.tug);
+        const siteTugs = getTugsForSite(ts.site);
 
         document.getElementById('scm-content').innerHTML = `
             <div class="detail-header">
@@ -274,8 +285,9 @@ const SCM = {
                 </div>
                 <div class="btn-group">
                     ${statusBadge(ts.status)}
+                    ${isDraft ? `<button class="btn btn-primary" onclick="SCM.confirmSchedule('${ts.id}')">${t('confirmSchedule')}</button>` : ''}
                     ${canDispatch ? `<button class="btn btn-warning" onclick="SCM.dispatchSchedule('${ts.id}')">${t('dispatchBtn')}</button>` : ''}
-                    ${ts.status === 'open' ? `<button class="btn btn-outline" onclick="SCM.showEditForm('${ts.id}')">${t('edit')}</button>` : ''}
+                    ${canEdit ? `<button class="btn btn-outline" onclick="SCM.showEditForm('${ts.id}')">${t('edit')}</button>` : ''}
                 </div>
             </div>
 
@@ -317,7 +329,7 @@ const SCM = {
                                     <td>${canAssignTugs && needsTug ? `
                                         <select onchange="SCM.assignTug('${ts.id}',${idx},this.value)" style="min-width:140px">
                                             <option value="">${t('selectTug')}</option>
-                                            ${MASTERS.tugBoats.map(tb => `<option value="${tb.id}" ${item.tug && item.tug.id === tb.id ? 'selected' : ''}>${tb.name} (${tb.hp} HP)</option>`).join('')}
+                                            ${siteTugs.map(tb => `<option value="${tb.id}" ${item.tug && item.tug.id === tb.id ? 'selected' : ''}>${tb.name}</option>`).join('')}
                                         </select>
                                     ` : item.tug ? `${item.tug.name}` : (needsTug ? `<span style="color:var(--gray-400)">${t('notAssigned')}</span>` : `<span style="color:var(--gray-400)">${t('na')}</span>`)}</td>
                                     <td style="font-family:monospace;font-size:12px">${item.wbs || '-'}</td>
@@ -328,7 +340,7 @@ const SCM = {
                 </div>
             </div>
 
-            ${ts.status === 'dispatch' || ts.status === 'completed' ? `
+            ${ts.status === 'dispatch' || ts.status === 'review' || ts.status === 'closed' ? `
                 <div class="section-title">${t('shipmentsCreated')}</div>
                 <div class="card">
                     <div class="table-wrap">
@@ -368,6 +380,7 @@ const SCM = {
     showEditForm(id) {
         const ts = scmTugSchedules.find(t => t.id === id);
         if (!ts) return;
+        const site = ts.site;
         openModal(`
             <div class="modal-header">
                 <h2>${t('editTugSchedule')} ${ts.id}</h2>
@@ -375,6 +388,20 @@ const SCM = {
             </div>
             <div class="modal-body">
                 <div class="form-grid">
+                    <div class="form-group">
+                        <label>${t('agentOwner')}</label>
+                        <select id="e-agent">${MASTERS.customers.map(c => `<option value="${c.id}" ${ts.agent.id === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}</select>
+                    </div>
+                    <div class="form-group">
+                        <label>${t('vessel')}</label>
+                        <select id="e-vessel" onchange="SCM.onEditVesselChange()">
+                            ${MASTERS.vessels.map(v => `<option value="${v.id}" ${ts.vessel.id === v.id ? 'selected' : ''}>${v.name}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>${t('port')}</label>
+                        <select id="e-port">${getPortsForSite(site).map(p => `<option value="${p.id}" ${ts.port.id === p.id ? 'selected' : ''}>${p.name} — ${p.desc}</option>`).join('')}</select>
+                    </div>
                     <div class="form-group">
                         <label>${t('pilotMaster')}</label>
                         <input id="e-pilot" type="text" value="${ts.pilot}">
@@ -391,6 +418,10 @@ const SCM = {
                         <label>${t('jobType')}</label>
                         <select id="e-jobtype">${MASTERS.jobTypes.map(j => `<option value="${j.id}" ${ts.jobType.id === j.id ? 'selected' : ''}>${j.name}</option>`).join('')}</select>
                     </div>
+                    <div class="form-group">
+                        <label>${t('activity')}</label>
+                        <select id="e-activity">${MASTERS.activities.map(a => `<option value="${a.id}" ${ts.activity.id === a.id ? 'selected' : ''}>${a.name}</option>`).join('')}</select>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -400,13 +431,21 @@ const SCM = {
         `);
     },
 
+    onEditVesselChange() {
+        // Could auto-fill GRT/LOA in edit too if needed
+    },
+
     saveEdit(id) {
         const ts = scmTugSchedules.find(t => t.id === id);
         if (!ts) return;
+        ts.agent = MASTERS.customers.find(c => c.id === document.getElementById('e-agent').value);
+        ts.vessel = MASTERS.vessels.find(v => v.id === document.getElementById('e-vessel').value);
+        ts.port = MASTERS.ports.find(p => p.id === document.getElementById('e-port').value);
         ts.pilot = document.getElementById('e-pilot').value;
         ts.workDate = document.getElementById('e-workdate').value;
         ts.scope = document.getElementById('e-scope').value;
         ts.jobType = MASTERS.jobTypes.find(j => j.id === document.getElementById('e-jobtype').value);
+        ts.activity = MASTERS.activities.find(a => a.id === document.getElementById('e-activity').value);
         closeModal();
         showToast(t('changesSaved'), 'success');
         this.showDetail(id);
@@ -453,7 +492,8 @@ const SCM = {
             <div class="stats-row">
                 <div class="stat-card"><div class="stat-value">${scmShipments.length}</div><div class="stat-label">${t('total')}</div></div>
                 <div class="stat-card"><div class="stat-value">${scmShipments.filter(s => s.status === 'dispatch').length}</div><div class="stat-label">${t('dispatch')}</div></div>
-                <div class="stat-card"><div class="stat-value">${scmShipments.filter(s => s.status === 'completed').length}</div><div class="stat-label">${t('completed')}</div></div>
+                <div class="stat-card"><div class="stat-value">${scmShipments.filter(s => s.status === 'review').length}</div><div class="stat-label">${t('review')}</div></div>
+                <div class="stat-card"><div class="stat-value">${scmShipments.filter(s => s.status === 'closed').length}</div><div class="stat-label">${t('closed')}</div></div>
             </div>
             <div class="card">
                 <div class="table-wrap">
@@ -491,25 +531,22 @@ const SCM = {
         const s = scmShipments.find(x => x.id === id);
         if (!s) return;
 
-        const stages = s.reportIn ? s.reportIn.stages : [
-            { name: 'Start', time: '' }, { name: 'Stand by #1', time: '' },
-            { name: 'Work Period #1', time: '' }, { name: 'Stand by #2', time: '' },
-            { name: 'Work Period #2', time: '' }, { name: 'Stand by #3', time: '' },
-            { name: 'Work Period #3', time: '' }, { name: 'Last', time: '' },
-        ];
-
-        const canReportIn = s.status === 'dispatch' || s.status === 'completed';
+        const stages = s.reportIn ? s.reportIn.stages : makeEmptyStages();
+        const canReportIn = s.status === 'dispatch' || s.status === 'review' || s.status === 'closed';
+        const isReview = s.status === 'review';
+        const isClosed = s.status === 'closed';
 
         document.getElementById('scm-content').innerHTML = `
             <div class="detail-header">
                 <div>
                     <button class="btn btn-outline btn-sm" onclick="SCM.renderShipmentList()" style="margin-bottom:8px">&larr; ${t('back')}</button>
                     <div class="detail-title">${s.id}</div>
-                    <div class="detail-subtitle">${t('fromOrder')} ${s.orderId} &bull; ${t('tug')}: ${s.tug.name} (${s.tug.hp} HP)</div>
+                    <div class="detail-subtitle">${t('fromOrder')} ${s.orderId} &bull; ${t('tug')}: ${s.tug.name}</div>
                 </div>
                 <div class="btn-group">
                     ${statusBadge(s.status)}
                     ${s.status === 'dispatch' && !s.reportIn ? `<button class="btn btn-success" onclick="SCM.startReportIn('${s.id}')">${t('reportIn')}</button>` : ''}
+                    ${isReview ? `<button class="btn btn-primary" onclick="SCM.closeShipment('${s.id}')">${t('confirmClose')}</button>` : ''}
                 </div>
             </div>
 
@@ -538,23 +575,55 @@ const SCM = {
                     <h3>${t('reportInTitle')}</h3>
                     <div class="btn-group">
                         ${s.reportIn ? `<span class="badge badge-${s.reportIn.type === 'Customer' ? 'open' : 'dispatch'}">${s.reportIn.type === 'Customer' ? t('customer') : t('internal')}</span>` : ''}
+                        ${isReview ? `<span style="font-size:12px;color:var(--warning)">${t('reviewHint')}</span>` : ''}
                     </div>
                 </div>
                 <div class="card-body">
                     <div class="timeline">
                         ${stages.map((stage, i) => {
-                            const filled = !!stage.time;
-                            const isNext = !filled && (i === 0 || stages[i-1].time);
+                            const hasStart = !!stage.startTime;
+                            const hasEnd = !!stage.endTime;
+                            const filled = hasStart && hasEnd;
+                            const isStandby = stage.name.includes('Stand by');
+                            const prevDone = i === 0 || (stages[i-1].startTime && stages[i-1].endTime);
+                            const isNext = !hasStart && prevDone && s.reportIn;
+                            const canRecord = s.status === 'dispatch' || isReview;
+                            const canEditTime = isReview;
                             return `
                                 <div class="timeline-item">
-                                    <div class="timeline-dot ${filled ? 'filled' : ''} ${isNext ? 'current' : ''}"></div>
-                                    <div class="timeline-label">${tStage(stage.name)}</div>
-                                    ${filled ? `<div class="timeline-time">${formatDateTime(stage.time)}</div>` : ''}
-                                    ${isNext && s.status !== 'completed' ? `
-                                        <div class="timeline-input">
-                                            <button class="btn btn-primary btn-sm" onclick="SCM.recordStage('${s.id}', ${i})">${t('recordNow')}</button>
+                                    <div class="timeline-dot ${filled ? 'filled' : ''} ${(hasStart && !hasEnd) ? 'current' : ''} ${isNext ? 'current' : ''}"></div>
+                                    <div class="timeline-label">
+                                        ${tStage(stage.name)}
+                                        <span style="font-size:11px;color:var(--gray-400);margin-left:6px">${stage.required ? t('stageRequired') : t('stageOptional')}</span>
+                                    </div>
+                                    ${filled ? `
+                                        <div class="timeline-time">${t('startTime')}: ${formatDateTime(stage.startTime)} &mdash; ${t('endTime')}: ${formatDateTime(stage.endTime)}</div>
+                                        ${canEditTime ? `
+                                            <div class="timeline-input" style="display:flex;gap:8px;margin-top:4px">
+                                                <input type="datetime-local" value="${stage.startTime}" onchange="SCM.adjustStageTime('${s.id}',${i},'start',this.value)" style="font-size:12px">
+                                                <input type="datetime-local" value="${stage.endTime}" onchange="SCM.adjustStageTime('${s.id}',${i},'end',this.value)" style="font-size:12px">
+                                            </div>
+                                        ` : ''}
+                                    ` : hasStart && !hasEnd ? `
+                                        <div class="timeline-time">${t('startTime')}: ${formatDateTime(stage.startTime)}</div>
+                                        ${canRecord ? `
+                                            <div class="timeline-input" style="display:flex;gap:8px;align-items:center;margin-top:4px">
+                                                <button class="btn btn-success btn-sm" onclick="SCM.recordStageEnd('${s.id}',${i})">${t('recordNow')} (${t('endTime')})</button>
+                                                <span style="font-size:11px;color:var(--gray-400)">${t('manualTimeInput')}</span>
+                                                <input type="datetime-local" id="manual-end-${i}" style="font-size:12px">
+                                                <button class="btn btn-outline btn-sm" onclick="SCM.recordStageEnd('${s.id}',${i},true)">${t('save')}</button>
+                                            </div>
+                                        ` : ''}
+                                    ` : isNext && canRecord ? `
+                                        <div class="timeline-input" style="display:flex;gap:8px;align-items:center;margin-top:4px">
+                                            <button class="btn btn-primary btn-sm" onclick="SCM.recordStageStart('${s.id}',${i})">${t('recordNow')} (${t('startTime')})</button>
+                                            ${isStandby ? `<span style="font-size:11px;color:var(--gray-400)">— ${t('stageOptional')}, </span>
+                                            <button class="btn btn-outline btn-sm" onclick="SCM.skipStage('${s.id}',${i})">${t('stageOptional')} — Skip</button>` : ''}
+                                            <span style="font-size:11px;color:var(--gray-400)">${t('manualTimeInput')}</span>
+                                            <input type="datetime-local" id="manual-start-${i}" style="font-size:12px">
+                                            <button class="btn btn-outline btn-sm" onclick="SCM.recordStageStart('${s.id}',${i},true)">${t('save')}</button>
                                         </div>
-                                    ` : (!filled ? `<div class="timeline-time" style="color:var(--gray-300)">${t('pending')}</div>` : '')}
+                                    ` : `<div class="timeline-time" style="color:var(--gray-300)">${isStandby ? t('stageOptional') : t('pending')}</div>`}
                                 </div>
                             `;
                         }).join('')}
@@ -594,31 +663,78 @@ const SCM = {
         if (!s) return;
         s.reportIn = {
             type: document.getElementById('ri-type').value,
-            stages: [
-                { name: 'Start', time: '' }, { name: 'Stand by #1', time: '' },
-                { name: 'Work Period #1', time: '' }, { name: 'Stand by #2', time: '' },
-                { name: 'Work Period #2', time: '' }, { name: 'Stand by #3', time: '' },
-                { name: 'Work Period #3', time: '' }, { name: 'Last', time: '' },
-            ],
+            stages: makeEmptyStages(),
         };
         closeModal();
         showToast(t('reportInStarted'), 'success');
         this.showShipmentDetail(id);
     },
 
-    recordStage(id, stageIdx) {
+    recordStageStart(id, stageIdx, manual) {
         const s = scmShipments.find(x => x.id === id);
         if (!s || !s.reportIn) return;
-        s.reportIn.stages[stageIdx].time = new Date().toISOString();
-        if (s.reportIn.stages[stageIdx].name === 'Last') {
-            s.status = 'completed';
-            const parentShipments = scmShipments.filter(sh => sh.orderId === s.orderId);
-            if (parentShipments.every(sh => sh.status === 'completed')) {
-                const ts = scmTugSchedules.find(t => t.id === s.orderId);
-                if (ts) ts.status = 'completed';
-            }
+        const stage = s.reportIn.stages[stageIdx];
+        if (manual) {
+            const el = document.getElementById(`manual-start-${stageIdx}`);
+            if (!el || !el.value) return;
+            stage.startTime = el.value;
+        } else {
+            stage.startTime = new Date().toISOString().slice(0, 16);
         }
-        showToast(t('stageRecorded', { stage: tStage(s.reportIn.stages[stageIdx].name), time: formatDateTime(s.reportIn.stages[stageIdx].time) }), 'success');
+        showToast(t('stageRecorded', { stage: tStage(stage.name), time: formatDateTime(stage.startTime) }), 'success');
+        this.showShipmentDetail(id);
+    },
+
+    recordStageEnd(id, stageIdx, manual) {
+        const s = scmShipments.find(x => x.id === id);
+        if (!s || !s.reportIn) return;
+        const stage = s.reportIn.stages[stageIdx];
+        if (manual) {
+            const el = document.getElementById(`manual-end-${stageIdx}`);
+            if (!el || !el.value) return;
+            stage.endTime = el.value;
+        } else {
+            stage.endTime = new Date().toISOString().slice(0, 16);
+        }
+
+        // Check if Last stage end is recorded → move to review
+        if (stage.name === 'Last' && stage.endTime) {
+            s.status = 'review';
+            showToast(t('shipmentUnderReview', { id }), 'success');
+        } else {
+            showToast(t('stageRecorded', { stage: tStage(stage.name), time: formatDateTime(stage.endTime) }), 'success');
+        }
+        this.showShipmentDetail(id);
+    },
+
+    skipStage(id, stageIdx) {
+        const s = scmShipments.find(x => x.id === id);
+        if (!s || !s.reportIn) return;
+        // Mark skipped stage as done with empty times (skip over it)
+        s.reportIn.stages[stageIdx].startTime = 'skipped';
+        s.reportIn.stages[stageIdx].endTime = 'skipped';
+        this.showShipmentDetail(id);
+    },
+
+    adjustStageTime(id, stageIdx, which, value) {
+        const s = scmShipments.find(x => x.id === id);
+        if (!s || !s.reportIn) return;
+        if (which === 'start') s.reportIn.stages[stageIdx].startTime = value;
+        else s.reportIn.stages[stageIdx].endTime = value;
+        showToast(t('changesSaved'), 'success');
+    },
+
+    closeShipment(id) {
+        const s = scmShipments.find(x => x.id === id);
+        if (!s) return;
+        s.status = 'closed';
+        // Check if all shipments from parent order are closed
+        const parentShipments = scmShipments.filter(sh => sh.orderId === s.orderId);
+        if (parentShipments.every(sh => sh.status === 'closed')) {
+            const ts = scmTugSchedules.find(t => t.id === s.orderId);
+            if (ts) ts.status = 'closed';
+        }
+        showToast(t('shipmentClosed', { id }), 'success');
         this.showShipmentDetail(id);
     },
 };

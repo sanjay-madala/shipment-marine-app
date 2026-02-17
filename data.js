@@ -1,4 +1,4 @@
-// ========== MASTER DATA ==========
+// ========== MASTER DATA (from Marine_comments.xlsx) ==========
 
 const MASTERS = {
     customers: [
@@ -8,7 +8,6 @@ const MASTERS = {
         { id: 'C004', name: 'Gulf Navigation Ltd.' },
         { id: 'C005', name: 'Eastern Seaboard Logistics' },
     ],
-    // Master_T01 - Vessels
     vessels: [
         { id: 'V001', name: 'MV SIAM STAR', grt: 12500, loa: 145.2 },
         { id: 'V002', name: 'MV BANGKOK GLORY', grt: 8700, loa: 118.6 },
@@ -16,62 +15,122 @@ const MASTERS = {
         { id: 'V004', name: 'MV GULF PIONEER', grt: 6300, loa: 98.4 },
         { id: 'V005', name: 'MV EASTERN WAVE', grt: 21000, loa: 185.0 },
     ],
-    // Master_T02 - Ports
+    // Port Master - real data from Excel
     ports: [
-        { id: 'P001', name: 'Bangkok Port (Klong Toey)' },
-        { id: 'P002', name: 'Laem Chabang Port' },
-        { id: 'P003', name: 'Map Ta Phut Port' },
-        { id: 'P004', name: 'Sriracha Harbour' },
-        { id: 'P005', name: 'Ko Sichang Anchorage' },
+        { id: 'BKK001', name: 'BKK-TUG', desc: 'BANGKOK - BKK TUG', site: 'BKK' },
+        { id: 'BKK005', name: 'BKK-TUG', desc: 'BANGKOK - BKK TUG', site: 'BKK' },
+        { id: 'BKK007', name: 'BKK-TUG', desc: 'BANGKOK - BKK TUG', site: 'BKK' },
+        { id: 'BKKBAR', name: 'BKK-BAR', desc: 'BANGKOK BAR (PILOT STATION)', site: 'BKK' },
+        { id: 'BKKMID', name: 'BKK-MID', desc: 'BANGKOK - มิดปากน้ำ', site: 'BKK' },
+        { id: 'BKKACM', name: 'BKK-ACME', desc: 'BANGKOK - อู่ ACME', site: 'BKK' },
+        { id: 'ASIMAR', name: 'ASIMAR', desc: 'ASIAN MARINE SERVICES PUBLIC CO.,LTD.', site: 'MTP' },
+        { id: 'BLCP', name: 'BLCPPORT', desc: 'BLCP POWER- MAPTAPHUT IEAT', site: 'MTP' },
+        { id: 'LCB', name: 'LCBPORT', desc: 'LAEM CHABANG PORT- AUTHORITY', site: 'MTP' },
+        { id: 'MIT', name: 'MITPORT', desc: 'MAPTAPHUT INDUSTRIAL TERMINAL- MTP IEAT', site: 'MTP' },
+        { id: 'MTT', name: 'MTTPORT', desc: 'MAPTAPHUT TANK TERMINAL- MAPTAPHUT IEAT', site: 'MTP' },
+        { id: 'IRPC', name: 'IRPCPORT', desc: 'IRPC PORT- RAYONG OUTSIDE CONCESSION', site: 'MTP' },
+        { id: 'LMPT1', name: 'PTTLNG', desc: 'LNG MAPTAPHUT TERMINAL 1-MAPTAPHUT IEAT', site: 'MTP' },
+        { id: 'LMPT2', name: 'LMPT2', desc: 'LNG MAPTAPHUT TERMINAL 2 - NONG FAB', site: 'MTP' },
+        { id: 'RTC', name: 'RTCPORT', desc: 'RAYONG TERMINAL- MAPTAPHUT IEAT', site: 'MTP' },
+        { id: 'SPRC', name: 'SPRCPORT', desc: 'STAR PETROLEAM REFINING- MAPTAPHUT IEAT', site: 'MTP' },
+        { id: 'SATHIP', name: 'SATTAHIP', desc: 'SATTAHIP PORT- SATTAHIP JUK SAMET', site: 'MTP' },
+        { id: 'SPM', name: 'SPMRY', desc: 'SINGLE POINT MOORING- RAYONG', site: 'MTP' },
+        { id: 'OUTER', name: 'OUTER', desc: 'OUTER ANCHORAGE AREA', site: 'MTP' },
+        { id: 'NFC', name: 'NFCPORT', desc: 'NFC FERTILIZER- MAPTAPHUT IEAT', site: 'MTP' },
+        { id: 'TCT', name: 'TCTPORT', desc: 'THAI CONNECTIVITY TERMINAL-MAPTAPHUT IEAT', site: 'MTP' },
+        { id: 'TTT', name: 'TTTPORT', desc: 'THAI TANK TERMINAL- MAPTAPHUT IEAT', site: 'MTP' },
+        { id: 'PTTGC-W', name: 'PTTGC-WEST', desc: 'PTT GLOBAL CHEMICAL- MAPTAPHUT OUTSIDE', site: 'MTP' },
+        { id: 'PTGC-E', name: 'PTTGCPORT', desc: 'PTT GLOBAL CHEMICAL- MAPTAPHUT IEAT (E)', site: 'MTP' },
+        { id: 'PTTANK', name: 'PTTTANK', desc: 'PTT TANK TERMINAL- MAPTAPHUT IEAT', site: 'MTP' },
     ],
-    // Master_T03 - Services / Sales BOM
+    // Sales BOM - simplified representative set from real data
     services: [
         { id: 'SVC001', name: 'Harbour Towage - Inbound', items: [
-            { id: 'BOM001', desc: 'Tug Assistance - Approach', unit: 'Trip' },
-            { id: 'BOM002', desc: 'Tug Assistance - Berthing', unit: 'Trip' },
-            { id: 'BOM003', desc: 'Standby Charge', unit: 'Hour' },
+            { id: '7SHITUGBOAT00001', desc: 'Tug Boat Service #1', unit: 'Trip' },
+            { id: '7SHITUGBOAT00002', desc: 'Tug Boat Service #2', unit: 'Trip' },
+            { id: '7SHISTANDBY00001', desc: 'Standby Charge', unit: 'Hour' },
         ]},
         { id: 'SVC002', name: 'Harbour Towage - Outbound', items: [
-            { id: 'BOM004', desc: 'Tug Assistance - Unberthing', unit: 'Trip' },
-            { id: 'BOM005', desc: 'Tug Assistance - Departure', unit: 'Trip' },
-            { id: 'BOM006', desc: 'Standby Charge', unit: 'Hour' },
+            { id: '7SHITUGBOAT00003', desc: 'Tug Boat Service #3', unit: 'Trip' },
+            { id: '7SHITUGBOAT00004', desc: 'Tug Boat Service #4', unit: 'Trip' },
+            { id: '7SHISTANDBY00002', desc: 'Standby Charge', unit: 'Hour' },
         ]},
         { id: 'SVC003', name: 'Shifting', items: [
-            { id: 'BOM007', desc: 'Tug Assistance - Shifting', unit: 'Trip' },
-            { id: 'BOM008', desc: 'Standby Charge', unit: 'Hour' },
+            { id: '7SHITUGBOAT00005', desc: 'Tug Boat Service #5', unit: 'Trip' },
+            { id: '7SHISTANDBY00003', desc: 'Standby Charge', unit: 'Hour' },
         ]},
-        { id: 'SVC004', name: 'Lightering', items: [
-            { id: 'BOM009', desc: 'Tug Assistance - Lightering', unit: 'Trip' },
-            { id: 'BOM010', desc: 'Barge Towing', unit: 'Trip' },
-            { id: 'BOM011', desc: 'Standby Charge', unit: 'Hour' },
+        { id: 'SVC004', name: 'Offshore / Towing', items: [
+            { id: '7SHITUGBOAT00006', desc: 'Tug Boat Service #6', unit: 'Trip' },
+            { id: '7SHITUGBOAT00007', desc: 'Tug Boat Service #7', unit: 'Trip' },
+            { id: '7SHISTANDBY00004', desc: 'Standby Charge', unit: 'Hour' },
+            { id: '7SHIROPE00000001', desc: 'Rope Service', unit: 'Trip' },
+        ]},
+        { id: 'SVC005', name: 'Pilot Service', items: [
+            { id: '7SHIPILOT0000001', desc: 'Pilot Service #1', unit: 'Trip' },
+            { id: '7SHIPILOT0000002', desc: 'Pilot Service #2', unit: 'Trip' },
+        ]},
+        { id: 'SVC006', name: 'Launch / Jetty Service', items: [
+            { id: '7SHOLAUNCH000001', desc: 'Launch Service', unit: 'Trip' },
+            { id: '7SHOJETTYG000001', desc: 'Jetty Guard Service', unit: 'Trip' },
         ]},
     ],
-    // Master_T04 - Activity Operations
+    // Activity Operation Master - real data
     activities: [
-        { id: 'ACT01', name: 'Berthing' },
-        { id: 'ACT02', name: 'Unberthing' },
-        { id: 'ACT03', name: 'Shifting' },
-        { id: 'ACT04', name: 'Lightering' },
-        { id: 'ACT05', name: 'Anchorage' },
+        { id: '1', name: 'Berth' },
+        { id: '2', name: 'Shifting' },
+        { id: '3', name: 'Unberth' },
+        { id: '4', name: 'Anchoring' },
+        { id: '5', name: 'Escorting' },
+        { id: '6', name: 'Grounding' },
+        { id: '7', name: 'Launching' },
+        { id: '8', name: 'Special Job' },
+        { id: '9', name: 'Stand By' },
+        { id: '10', name: 'Towing' },
+        { id: '11', name: 'Turning' },
+        { id: '12', name: 'Reberthing' },
     ],
-    // Master_T05 - Job Types
+    // Job Type Master - real data
     jobTypes: [
-        { id: 'JT01', name: 'Regular' },
-        { id: 'JT02', name: 'Overtime' },
-        { id: 'JT03', name: 'Emergency' },
+        { id: 'HI', name: 'Harbor Serv. Inside' },
+        { id: 'HO', name: 'Harbor Serv. Outside' },
+        { id: 'OF', name: 'Offshore Serv.' },
+        { id: 'OT', name: 'MO Other' },
     ],
     scopes: ['In-Bay', 'Out-Bay'],
     sites: ['BKK', 'MTP'],
-    // Master_T06 - Tug Boats
+    // Tug Master - real data
     tugBoats: [
-        { id: 'TUG01', name: 'SEATIGER 1', hp: 3200 },
-        { id: 'TUG02', name: 'SEATIGER 2', hp: 3200 },
-        { id: 'TUG03', name: 'OCEAN FORCE', hp: 4500 },
-        { id: 'TUG04', name: 'HARBOUR KING', hp: 2800 },
-        { id: 'TUG05', name: 'RIVER HAWK', hp: 2400 },
-        { id: 'TUG06', name: 'STORM GUARD', hp: 5000 },
+        { id: 'RS1', name: 'RS1', site: 'BKK' },
+        { id: 'RS2', name: 'RS2', site: 'BKK' },
+        { id: 'RS7', name: 'RS7', site: 'BKK' },
+        { id: 'RS9', name: 'RS9', site: 'BKK' },
+        { id: 'RS10', name: 'RS10', site: 'BKK' },
+        { id: 'RS19', name: 'RS19', site: 'BKK' },
+        { id: 'RS20', name: 'RS20', site: 'BKK' },
+        { id: 'RS21', name: 'RS21', site: 'BKK' },
+        { id: 'RS25', name: 'RS25', site: 'BKK' },
+        { id: 'RS28', name: 'RS28', site: 'BKK' },
+        { id: 'RS39', name: 'RS39', site: 'BKK' },
+        { id: 'SC14', name: 'SC14', site: 'BKK' },
+        { id: 'SC15B', name: 'SC15', site: 'BKK' },
+        { id: 'KNO101', name: 'KNO101', site: 'MTP' },
+        { id: 'KNO102', name: 'KNO102', site: 'MTP' },
+        { id: 'KNO103', name: 'KNO103', site: 'MTP' },
+        { id: 'KNO201', name: 'KNO201', site: 'MTP' },
+        { id: 'KNO301', name: 'KNO301', site: 'MTP' },
+        { id: 'KNO401', name: 'KNO401', site: 'MTP' },
+        { id: 'KNO402', name: 'KNO402', site: 'MTP' },
+        { id: 'RS11', name: 'RS11', site: 'MTP' },
+        { id: 'RS14', name: 'RS14', site: 'MTP' },
+        { id: 'RS15', name: 'RS15', site: 'MTP' },
+        { id: 'RS16', name: 'RS16', site: 'MTP' },
+        { id: 'RS17', name: 'RS17', site: 'MTP' },
+        { id: 'RS18', name: 'RS18', site: 'MTP' },
+        { id: 'SC17', name: 'SC17', site: 'MTP' },
+        { id: 'SC18', name: 'SC18', site: 'MTP' },
+        { id: 'SC19', name: 'SC19', site: 'MTP' },
+        { id: 'SC20', name: 'SC20', site: 'MTP' },
     ],
-    // NPM - Container Lines
     containerLines: [
         { id: 'LN01', name: 'Evergreen' },
         { id: 'LN02', name: 'COSCO' },
@@ -81,29 +140,30 @@ const MASTERS = {
     ],
     commodities: ['General Cargo', 'Chemicals', 'Electronics', 'Automotive Parts', 'Textiles', 'Food & Beverage', 'Machinery'],
     containerSizes: [20, 40, 45],
-    docTypes: ['E', 'F'],  // E=Export, F=Import
+    docTypes: ['E', 'F'],
 };
 
 // ========== SCM MOCK DATA ==========
+// Status flow: draft → open → dispatch → review → closed
 
 let scmTugSchedules = [
     {
         id: 'TS-001',
-        status: 'completed',
+        status: 'closed',
         agent: MASTERS.customers[0],
         site: 'BKK',
         vessel: MASTERS.vessels[0],
         port: MASTERS.ports[0],
-        jobType: MASTERS.jobTypes[0],
+        jobType: MASTERS.jobTypes[1],
         scope: 'In-Bay',
         workDate: '2026-02-15T08:00',
         activity: MASTERS.activities[0],
         service: MASTERS.services[0],
         pilot: 'Capt. Somchai',
         bomItems: [
-            { ...MASTERS.services[0].items[0], tug: MASTERS.tugBoats[0], wbs: '01S.26TG.SCBTH.S001' },
-            { ...MASTERS.services[0].items[1], tug: MASTERS.tugBoats[1], wbs: '01S.26TG.SCBTH.S002' },
-            { ...MASTERS.services[0].items[2], tug: null, wbs: '01S.26TG.SCBTH.S003' },
+            { ...MASTERS.services[0].items[0], tug: MASTERS.tugBoats[0], wbs: '02S18BK0RS1  0000' },
+            { ...MASTERS.services[0].items[1], tug: MASTERS.tugBoats[1], wbs: '02S18BK0RS2  0000' },
+            { ...MASTERS.services[0].items[2], tug: null, wbs: '' },
         ],
         createdAt: '2026-02-14T10:30',
     },
@@ -113,17 +173,17 @@ let scmTugSchedules = [
         agent: MASTERS.customers[1],
         site: 'BKK',
         vessel: MASTERS.vessels[1],
-        port: MASTERS.ports[1],
-        jobType: MASTERS.jobTypes[0],
+        port: MASTERS.ports[3],
+        jobType: MASTERS.jobTypes[1],
         scope: 'Out-Bay',
         workDate: '2026-02-16T14:00',
-        activity: MASTERS.activities[1],
+        activity: MASTERS.activities[2],
         service: MASTERS.services[1],
         pilot: 'Capt. Prasert',
         bomItems: [
-            { ...MASTERS.services[1].items[0], tug: MASTERS.tugBoats[2], wbs: '01S.26TG.SCUBT.S001' },
-            { ...MASTERS.services[1].items[1], tug: MASTERS.tugBoats[3], wbs: '01S.26TG.SCUBT.S002' },
-            { ...MASTERS.services[1].items[2], tug: null, wbs: '01S.26TG.SCUBT.S003' },
+            { ...MASTERS.services[1].items[0], tug: MASTERS.tugBoats[2], wbs: '02S18BK0RS7  0000' },
+            { ...MASTERS.services[1].items[1], tug: MASTERS.tugBoats[3], wbs: '02S18BK0RS9  0000' },
+            { ...MASTERS.services[1].items[2], tug: null, wbs: '' },
         ],
         createdAt: '2026-02-15T09:00',
     },
@@ -133,17 +193,17 @@ let scmTugSchedules = [
         agent: MASTERS.customers[2],
         site: 'MTP',
         vessel: MASTERS.vessels[2],
-        port: MASTERS.ports[2],
-        jobType: MASTERS.jobTypes[1],
+        port: MASTERS.ports[9],
+        jobType: MASTERS.jobTypes[0],
         scope: 'In-Bay',
         workDate: '2026-02-17T06:00',
         activity: MASTERS.activities[0],
         service: MASTERS.services[0],
         pilot: 'Capt. Wichai',
         bomItems: [
-            { ...MASTERS.services[0].items[0], tug: null, wbs: '02S.26TG.SCBTH.S001' },
-            { ...MASTERS.services[0].items[1], tug: null, wbs: '02S.26TG.SCBTH.S002' },
-            { ...MASTERS.services[0].items[2], tug: null, wbs: '02S.26TG.SCBTH.S003' },
+            { ...MASTERS.services[0].items[0], tug: null, wbs: '' },
+            { ...MASTERS.services[0].items[1], tug: null, wbs: '' },
+            { ...MASTERS.services[0].items[2], tug: null, wbs: '' },
         ],
         createdAt: '2026-02-16T11:45',
     },
@@ -154,10 +214,10 @@ let scmTugSchedules = [
         site: 'BKK',
         vessel: MASTERS.vessels[3],
         port: MASTERS.ports[3],
-        jobType: MASTERS.jobTypes[0],
+        jobType: MASTERS.jobTypes[1],
         scope: 'Out-Bay',
         workDate: '2026-02-18T10:00',
-        activity: MASTERS.activities[2],
+        activity: MASTERS.activities[1],
         service: MASTERS.services[2],
         pilot: '',
         bomItems: [
@@ -172,78 +232,80 @@ let scmTugSchedules = [
         agent: MASTERS.customers[4],
         site: 'MTP',
         vessel: MASTERS.vessels[4],
-        port: MASTERS.ports[4],
+        port: MASTERS.ports[18],
         jobType: MASTERS.jobTypes[2],
         scope: 'Out-Bay',
         workDate: '2026-02-19T16:00',
-        activity: MASTERS.activities[3],
+        activity: MASTERS.activities[9],
         service: MASTERS.services[3],
         pilot: '',
         bomItems: [
             { ...MASTERS.services[3].items[0], tug: null, wbs: '' },
             { ...MASTERS.services[3].items[1], tug: null, wbs: '' },
             { ...MASTERS.services[3].items[2], tug: null, wbs: '' },
+            { ...MASTERS.services[3].items[3], tug: null, wbs: '' },
         ],
         createdAt: '2026-02-17T08:25',
     },
 ];
 
+// Report-In stages now have startTime + endTime
 let scmShipments = [
     {
         id: 'SH-1101.26.0001',
         orderId: 'TS-001',
-        status: 'completed',
+        status: 'closed',
         agent: MASTERS.customers[0],
         site: 'BKK',
         vessel: MASTERS.vessels[0],
         port: MASTERS.ports[0],
-        jobType: MASTERS.jobTypes[0],
+        jobType: MASTERS.jobTypes[1],
         scope: 'In-Bay',
         workDate: '2026-02-15T08:00',
         activity: MASTERS.activities[0],
         pilot: 'Capt. Somchai',
         tug: MASTERS.tugBoats[0],
-        bomItem: { ...MASTERS.services[0].items[0], wbs: '01S.26TG.SCBTH.S001' },
+        bomItem: { ...MASTERS.services[0].items[0], wbs: '02S18BK0RS1  0000' },
         reportIn: {
             type: 'Customer',
             stages: [
-                { name: 'Start', time: '2026-02-15T08:05' },
-                { name: 'Stand by #1', time: '2026-02-15T08:20' },
-                { name: 'Work Period #1', time: '2026-02-15T08:35' },
-                { name: 'Stand by #2', time: '2026-02-15T09:10' },
-                { name: 'Work Period #2', time: '2026-02-15T09:25' },
-                { name: 'Stand by #3', time: '' },
-                { name: 'Work Period #3', time: '' },
-                { name: 'Last', time: '2026-02-15T10:00' },
+                { name: 'Start', startTime: '2026-02-15T08:05', endTime: '2026-02-15T08:20', required: true },
+                { name: 'Stand by #1', startTime: '2026-02-15T08:20', endTime: '2026-02-15T08:35', required: false },
+                { name: 'Work Period #1', startTime: '2026-02-15T08:35', endTime: '2026-02-15T09:10', required: false },
+                { name: 'Stand by #2', startTime: '', endTime: '', required: false },
+                { name: 'Work Period #2', startTime: '', endTime: '', required: false },
+                { name: 'Stand by #3', startTime: '', endTime: '', required: false },
+                { name: 'Work Period #3', startTime: '', endTime: '', required: false },
+                { name: 'Last', startTime: '2026-02-15T10:00', endTime: '2026-02-15T10:00', required: true },
             ],
         },
     },
     {
         id: 'SH-1101.26.0002',
         orderId: 'TS-001',
-        status: 'completed',
+        status: 'closed',
         agent: MASTERS.customers[0],
         site: 'BKK',
         vessel: MASTERS.vessels[0],
         port: MASTERS.ports[0],
-        jobType: MASTERS.jobTypes[0],
+        jobType: MASTERS.jobTypes[1],
         scope: 'In-Bay',
         workDate: '2026-02-15T08:00',
         activity: MASTERS.activities[0],
         pilot: 'Capt. Somchai',
         tug: MASTERS.tugBoats[1],
-        bomItem: { ...MASTERS.services[0].items[1], wbs: '01S.26TG.SCBTH.S002' },
+        bomItem: { ...MASTERS.services[0].items[1], wbs: '02S18BK0RS2  0000' },
         reportIn: {
             type: 'Internal',
             stages: [
-                { name: 'Start', time: '2026-02-15T08:10' },
-                { name: 'Stand by #1', time: '2026-02-15T08:25' },
-                { name: 'Work Period #1', time: '2026-02-15T08:40' },
-                { name: 'Stand by #2', time: '' },
-                { name: 'Work Period #2', time: '' },
-                { name: 'Stand by #3', time: '' },
-                { name: 'Work Period #3', time: '' },
-                { name: 'Last', time: '2026-02-15T09:45' },
+                { name: 'Start', startTime: '2026-02-15T08:10', endTime: '2026-02-15T08:25', required: true },
+                { name: 'Stand by #1', startTime: '', endTime: '', required: false },
+                { name: 'Work Period #1', startTime: '2026-02-15T08:25', endTime: '2026-02-15T09:30', required: false },
+                { name: 'Stand by #2', startTime: '', endTime: '', required: false },
+                { name: 'Work Period #2', startTime: '', endTime: '', required: false },
+                { name: 'Stand by #3', startTime: '', endTime: '', required: false },
+                { name: 'Work Period #3', startTime: '', endTime: '', required: false },
+                { name: 'Last', startTime: '2026-02-15T09:45', endTime: '2026-02-15T09:45', required: true },
             ],
         },
     },
@@ -254,14 +316,14 @@ let scmShipments = [
         agent: MASTERS.customers[1],
         site: 'BKK',
         vessel: MASTERS.vessels[1],
-        port: MASTERS.ports[1],
-        jobType: MASTERS.jobTypes[0],
+        port: MASTERS.ports[3],
+        jobType: MASTERS.jobTypes[1],
         scope: 'Out-Bay',
         workDate: '2026-02-16T14:00',
-        activity: MASTERS.activities[1],
+        activity: MASTERS.activities[2],
         pilot: 'Capt. Prasert',
         tug: MASTERS.tugBoats[2],
-        bomItem: { ...MASTERS.services[1].items[0], wbs: '01S.26TG.SCUBT.S001' },
+        bomItem: { ...MASTERS.services[1].items[0], wbs: '02S18BK0RS7  0000' },
         reportIn: null,
     },
     {
@@ -271,19 +333,20 @@ let scmShipments = [
         agent: MASTERS.customers[1],
         site: 'BKK',
         vessel: MASTERS.vessels[1],
-        port: MASTERS.ports[1],
-        jobType: MASTERS.jobTypes[0],
+        port: MASTERS.ports[3],
+        jobType: MASTERS.jobTypes[1],
         scope: 'Out-Bay',
         workDate: '2026-02-16T14:00',
-        activity: MASTERS.activities[1],
+        activity: MASTERS.activities[2],
         pilot: 'Capt. Prasert',
         tug: MASTERS.tugBoats[3],
-        bomItem: { ...MASTERS.services[1].items[1], wbs: '01S.26TG.SCUBT.S002' },
+        bomItem: { ...MASTERS.services[1].items[1], wbs: '02S18BK0RS9  0000' },
         reportIn: null,
     },
 ];
 
 // ========== NPM MOCK DATA ==========
+// EIR direction: Out first (leaves port), then In (returns to port)
 
 let npmShipments = [
     {
@@ -300,10 +363,17 @@ let npmShipments = [
             { id: 'BK003', shipper: 'Thai Foods International', fw: 'FW003', bookingNo: 'BKG-2026-0003', cargo: 'Food & Beverage', line: 'Maersk', sts: 'F', fwRef: 'FW-REF-003', size: 40, qty: 8, stuffing: 'CY', marking: 'TFI-003', srNo: 'SR-003', docType: 'F' },
         ],
         containers: [
-            { id: 'EIRU1234567', bookingNo: 'BKG-2026-0001', size: 40, type: 'GP', sealNo: 'SL-001', weight: 24500, inspected: true, eirIn: { id: 'EIR-IN-001', time: '2026-02-16T09:00', truckNo: 'BKK-1234', driverName: 'Somchai P.', status: 'completed' }, eirOut: { id: 'EIR-OUT-001', time: '2026-02-17T14:00', truckNo: 'BKK-1234', driverName: 'Somchai P.', status: 'completed' }},
-            { id: 'CSQU7654321', bookingNo: 'BKG-2026-0001', size: 40, type: 'GP', sealNo: 'SL-002', weight: 22100, inspected: true, eirIn: { id: 'EIR-IN-002', time: '2026-02-16T10:30', truckNo: 'BKK-5678', driverName: 'Prasert K.', status: 'completed' }, eirOut: null },
-            { id: 'MSKU9876543', bookingNo: 'BKG-2026-0002', size: 20, type: 'GP', sealNo: 'SL-003', weight: 18200, inspected: false, eirIn: null, eirOut: null },
-            { id: 'OOLU3456789', bookingNo: 'BKG-2026-0003', size: 40, type: 'RF', sealNo: 'SL-004', weight: 26800, inspected: true, eirIn: { id: 'EIR-IN-004', time: '2026-02-16T14:00', truckNo: 'MTP-9012', driverName: 'Wichai S.', status: 'completed' }, eirOut: null },
+            { id: 'EIRU1234567', bookingNo: 'BKG-2026-0001', size: 40, type: 'GP', sealNo: 'SL-001', weight: 24500, inspected: true,
+              eirOut: { id: 'EIR-OUT-001', time: '2026-02-16T08:00', truckNo: 'BKK-1234', driverName: 'Somchai P.', driverLicense: 'DL-001234', truckType: 'Trailer', remarks: '', status: 'completed' },
+              eirIn: { id: 'EIR-IN-001', time: '2026-02-17T14:00', truckNo: 'BKK-1234', driverName: 'Somchai P.', driverLicense: 'DL-001234', truckType: 'Trailer', remarks: '', status: 'completed' }},
+            { id: 'CSQU7654321', bookingNo: 'BKG-2026-0001', size: 40, type: 'GP', sealNo: 'SL-002', weight: 22100, inspected: true,
+              eirOut: { id: 'EIR-OUT-002', time: '2026-02-16T10:30', truckNo: 'BKK-5678', driverName: 'Prasert K.', driverLicense: 'DL-005678', truckType: 'Trailer', remarks: '', status: 'completed' },
+              eirIn: null },
+            { id: 'MSKU9876543', bookingNo: 'BKG-2026-0002', size: 20, type: 'GP', sealNo: 'SL-003', weight: 18200, inspected: false, eirOut: null, eirIn: null },
+            { id: 'OOLU3456789', bookingNo: 'BKG-2026-0003', size: 40, type: 'RF', sealNo: 'SL-004', weight: 26800, inspected: true,
+              eirOut: { id: 'EIR-OUT-004', time: '2026-02-16T14:00', truckNo: 'MTP-9012', driverName: 'Wichai S.', driverLicense: 'DL-009012', truckType: 'Flatbed', remarks: '', status: 'completed' },
+              eirIn: null },
+            { id: 'TCLU5551234', bookingNo: 'BKG-NOMATCH', size: 20, type: 'GP', sealNo: 'SL-005', weight: 15000, inspected: false, eirOut: null, eirIn: null },
         ],
     },
     {
@@ -335,7 +405,6 @@ let npmShipments = [
     },
 ];
 
-// Container inspection checklist template
 const INSPECTION_CHECKLIST = [
     { id: 'CHK01', label: 'Exterior - Roof', category: 'Exterior' },
     { id: 'CHK02', label: 'Exterior - Side Panels (Left)', category: 'Exterior' },
@@ -354,7 +423,7 @@ const INSPECTION_CHECKLIST = [
 ];
 
 let containerInspections = {
-    'EIRU1234567': { completedAt: '2026-02-16T08:30', inspector: 'Anon T.', items: INSPECTION_CHECKLIST.map(c => ({ ...c, ok: true, note: '' })) },
+    'EIRU1234567': { completedAt: '2026-02-16T07:30', inspector: 'Anon T.', items: INSPECTION_CHECKLIST.map(c => ({ ...c, ok: true, note: '' })) },
     'CSQU7654321': { completedAt: '2026-02-16T10:00', inspector: 'Anon T.', items: INSPECTION_CHECKLIST.map(c => ({ ...c, ok: true, note: '' })) },
     'OOLU3456789': { completedAt: '2026-02-16T13:30', inspector: 'Boon S.', items: INSPECTION_CHECKLIST.map((c, i) => ({ ...c, ok: i !== 5, note: i === 5 ? 'Minor rust on underframe' : '' })) },
 };
@@ -400,5 +469,27 @@ function closeModal() {
 }
 
 function statusBadge(status) {
-    return `<span class="badge badge-${status}">${status}</span>`;
+    const label = typeof t === 'function' ? t(status) : status;
+    return `<span class="badge badge-${status}">${label}</span>`;
+}
+
+function getPortsForSite(site) {
+    return MASTERS.ports.filter(p => !p.site || p.site === site);
+}
+
+function getTugsForSite(site) {
+    return MASTERS.tugBoats.filter(tb => tb.site === site);
+}
+
+function makeEmptyStages() {
+    return [
+        { name: 'Start', startTime: '', endTime: '', required: true },
+        { name: 'Stand by #1', startTime: '', endTime: '', required: false },
+        { name: 'Work Period #1', startTime: '', endTime: '', required: false },
+        { name: 'Stand by #2', startTime: '', endTime: '', required: false },
+        { name: 'Work Period #2', startTime: '', endTime: '', required: false },
+        { name: 'Stand by #3', startTime: '', endTime: '', required: false },
+        { name: 'Work Period #3', startTime: '', endTime: '', required: false },
+        { name: 'Last', startTime: '', endTime: '', required: true },
+    ];
 }
