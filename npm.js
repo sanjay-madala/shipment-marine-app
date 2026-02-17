@@ -275,8 +275,13 @@ const NPM = {
 
             ${mismatchContainers.length > 0 ? `
                 <div style="background:var(--danger-light);padding:12px 16px;border-radius:8px;margin-bottom:16px;border:1px solid var(--danger)">
-                    <strong style="color:var(--danger)">${t('containerMismatch')}</strong>
-                    ${mismatchContainers.map(c => `<div style="margin-top:4px;color:var(--danger)">${t('mismatchWarning', { id: c.id })}</div>`).join('')}
+                    <div style="display:flex;justify-content:space-between;align-items:center">
+                        <div>
+                            <strong style="color:var(--danger)">${t('containerMismatch')}</strong>
+                            ${mismatchContainers.map(c => `<div style="margin-top:4px;color:var(--danger)">${t('mismatchWarning', { id: c.id })}</div>`).join('')}
+                        </div>
+                        <button class="btn btn-warning btn-sm" onclick="NPM.revalidateContainers('${s.id}')" style="flex-shrink:0">${t('revalidate')}</button>
+                    </div>
                 </div>
             ` : ''}
 
@@ -307,7 +312,7 @@ const NPM = {
                     </div>
                     <div class="table-wrap">
                         <table>
-                            <thead><tr><th>${t('shipper')}</th><th>${t('bookingNo')}</th><th>${t('cargo')}</th><th>${t('line')}</th><th>${t('sts')}</th><th>${t('size')}</th><th>${t('qty')}</th><th>${t('stuffing')}</th><th>${t('marking')}</th><th>${t('srNo')}</th><th>${t('docType')}</th></tr></thead>
+                            <thead><tr><th>${t('shipper')}</th><th>${t('bookingNo')}</th><th>${t('cargo')}</th><th>${t('line')}</th><th>${t('sts')}</th><th>${t('size')}</th><th>${t('qty')}</th><th>${t('stuffing')}</th><th>${t('marking')}</th><th>${t('srNo')}</th><th>${t('docType')}</th>${canEdit ? `<th>${t('actions')}</th>` : ''}</tr></thead>
                             <tbody>
                                 ${s.bookings.map(b => `
                                     <tr>
@@ -322,6 +327,7 @@ const NPM = {
                                         <td>${b.marking || '-'}</td>
                                         <td>${b.srNo || '-'}</td>
                                         <td>${b.docType}</td>
+                                        ${canEdit ? `<td><button class="btn btn-outline btn-sm" onclick="NPM.showEditBooking('${s.id}','${b.id}')">${t('edit')}</button></td>` : ''}
                                     </tr>
                                 `).join('')}
                             </tbody>
@@ -332,10 +338,13 @@ const NPM = {
 
             <div id="tab-containers" class="tab-content">
                 <div class="card">
-                    <div class="card-header"><h3>${t('containers')}</h3></div>
+                    <div class="card-header">
+                        <h3>${t('containers')}</h3>
+                        ${mismatchContainers.length > 0 ? `<button class="btn btn-warning btn-sm" onclick="NPM.revalidateContainers('${s.id}')">${t('revalidate')}</button>` : ''}
+                    </div>
                     <div class="table-wrap">
                         <table>
-                            <thead><tr><th>${t('containerId')}</th><th>${t('bookingNo')}</th><th>${t('size')}</th><th>${t('containerType')}</th><th>${t('sealNo')}</th><th>${t('weight')}</th><th>${t('inspected')}</th><th>${t('eirOut')}</th><th>${t('eirIn')}</th><th></th></tr></thead>
+                            <thead><tr><th>${t('containerId')}</th><th>${t('bookingNo')}</th><th>${t('size')}</th><th>${t('containerType')}</th><th>${t('sealNo')}</th><th>${t('weight')}</th><th>${t('inspected')}</th><th>${t('eirOut')}</th><th>${t('eirIn')}</th><th>${t('actions')}</th></tr></thead>
                             <tbody>
                                 ${s.containers.length > 0 ? s.containers.map(c => {
                                     const isMismatch = !s.bookings.find(b => b.bookingNo === c.bookingNo);
@@ -350,7 +359,10 @@ const NPM = {
                                         <td>${c.inspected ? `<span style="color:var(--success)">&#10003; ${t('yes')}</span>` : `<span style="color:var(--danger)">&#10007; ${t('no')}</span>`}</td>
                                         <td>${c.eirOut ? '&#10003; ' + formatDateTime(c.eirOut.time) : '-'}</td>
                                         <td>${c.eirIn ? '&#10003; ' + formatDateTime(c.eirIn.time) : '-'}</td>
-                                        <td>${isMismatch ? `<span style="color:var(--danger);font-size:12px">${t('mismatchWarning', { id: c.id })}</span>` : ''}</td>
+                                        <td>
+                                            <button class="btn btn-outline btn-sm" onclick="NPM.showEditContainer('${s.id}','${c.id}')">${t('edit')}</button>
+                                            ${isMismatch ? `<span style="color:var(--danger);font-size:11px;margin-left:4px">${t('containerMismatch')}</span>` : ''}
+                                        </td>
                                     </tr>`;
                                 }).join('') : `<tr><td colspan="10" style="text-align:center;padding:32px;color:var(--gray-400)">${t('noContainersLoaded')}</td></tr>`}
                             </tbody>
@@ -380,8 +392,8 @@ const NPM = {
                                         <td>
                                             ${!c.eirOut || c.eirOut.status === 'cancelled' ? `<button class="btn btn-warning btn-sm" onclick="NPM.createEIR('${s.id}','${c.id}','out')">${t('eirOut')}</button>` : ''}
                                             ${c.eirOut && c.eirOut.status !== 'cancelled' && (!c.eirIn || c.eirIn.status === 'cancelled') ? `<button class="btn btn-success btn-sm" onclick="NPM.createEIR('${s.id}','${c.id}','in')">${t('eirIn')}</button>` : ''}
-                                            ${c.eirOut && c.eirOut.status === 'completed' ? `<button class="btn btn-danger btn-sm" onclick="NPM.cancelEIR('${s.id}','${c.id}','out')">${t('cancelEir')}</button>` : ''}
-                                            ${c.eirIn && c.eirIn.status === 'completed' ? `<button class="btn btn-danger btn-sm" onclick="NPM.cancelEIR('${s.id}','${c.id}','in')">${t('cancelEir')}</button>` : ''}
+                                            ${c.eirOut && c.eirOut.status === 'completed' ? `<button class="btn btn-danger btn-sm" onclick="NPM.cancelEIR('${s.id}','${c.id}','out')">${t('cancelEirOut')}</button>` : ''}
+                                            ${c.eirIn && c.eirIn.status === 'completed' ? `<button class="btn btn-danger btn-sm" onclick="NPM.cancelEIR('${s.id}','${c.id}','in')">${t('cancelEirIn')}</button>` : ''}
                                             ${(c.eirIn && c.eirIn.status !== 'cancelled') || (c.eirOut && c.eirOut.status !== 'cancelled') ? `<button class="btn btn-outline btn-sm" onclick="NPM.printEIR('${c.id}')">${t('print')}</button>` : ''}
                                         </td>
                                     </tr>
@@ -490,6 +502,128 @@ const NPM = {
         });
         closeModal();
         showToast(t('bookingAdded'), 'success');
+        this.showDetail(shipId);
+    },
+
+    // ========== EDIT BOOKING ==========
+    showEditBooking(shipId, bookingId) {
+        const s = npmShipments.find(x => x.id === shipId);
+        if (!s) return;
+        const b = s.bookings.find(x => x.id === bookingId);
+        if (!b) return;
+        openModal(`
+            <div class="modal-header">
+                <h2>${t('editBooking')} &mdash; ${b.bookingNo}</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group"><label>${t('shipper')} <span class="req">*</span></label><input id="eb-shipper" type="text" value="${b.shipper}"></div>
+                    <div class="form-group"><label>${t('bookingNo')} <span class="req">*</span></label><input id="eb-bookingno" type="text" value="${b.bookingNo}"></div>
+                    <div class="form-group"><label>${t('cargo')}</label><select id="eb-cargo">${MASTERS.commodities.map(c => `<option ${b.cargo === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
+                    <div class="form-group"><label>${t('line')}</label><select id="eb-line">${MASTERS.containerLines.map(l => `<option ${b.line === l.name ? 'selected' : ''}>${l.name}</option>`).join('')}</select></div>
+                    <div class="form-group"><label>${t('size')}</label><select id="eb-size">${MASTERS.containerSizes.map(sz => `<option ${b.size === sz ? 'selected' : ''}>${sz}</option>`).join('')}</select></div>
+                    <div class="form-group"><label>${t('qty')}</label><input id="eb-qty" type="number" value="${b.qty}" min="1"></div>
+                    <div class="form-group"><label>${t('docType')}</label><select id="eb-doctype"><option value="E" ${b.docType === 'E' ? 'selected' : ''}>${t('exportShort')}</option><option value="F" ${b.docType === 'F' ? 'selected' : ''}>${t('importShort')}</option></select></div>
+                    <div class="form-group"><label>${t('stuffing')}</label><input id="eb-stuffing" type="text" value="${b.stuffing}"></div>
+                    <div class="form-group"><label>${t('marking')}</label><input id="eb-marking" type="text" value="${b.marking || ''}"></div>
+                    <div class="form-group"><label>${t('srNo')}</label><input id="eb-srno" type="text" value="${b.srNo || ''}"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal()">${t('cancel')}</button>
+                <button class="btn btn-primary" onclick="NPM.saveEditBooking('${shipId}','${bookingId}')">${t('saveChanges')}</button>
+            </div>
+        `);
+    },
+
+    saveEditBooking(shipId, bookingId) {
+        const s = npmShipments.find(x => x.id === shipId);
+        if (!s) return;
+        const b = s.bookings.find(x => x.id === bookingId);
+        if (!b) return;
+        const oldBookingNo = b.bookingNo;
+        b.shipper = document.getElementById('eb-shipper').value.trim();
+        b.bookingNo = document.getElementById('eb-bookingno').value.trim();
+        b.cargo = document.getElementById('eb-cargo').value;
+        b.line = document.getElementById('eb-line').value;
+        b.size = parseInt(document.getElementById('eb-size').value);
+        b.qty = parseInt(document.getElementById('eb-qty').value);
+        b.docType = document.getElementById('eb-doctype').value;
+        b.sts = b.docType;
+        b.stuffing = document.getElementById('eb-stuffing').value.trim();
+        b.marking = document.getElementById('eb-marking').value.trim();
+        b.srNo = document.getElementById('eb-srno').value.trim();
+        // Update containers that referenced old booking no
+        if (oldBookingNo !== b.bookingNo) {
+            s.containers.filter(c => c.bookingNo === oldBookingNo).forEach(c => c.bookingNo = b.bookingNo);
+        }
+        closeModal();
+        showToast(t('bookingSaved'), 'success');
+        this.showDetail(shipId);
+    },
+
+    // ========== EDIT CONTAINER ==========
+    showEditContainer(shipId, containerId) {
+        const s = npmShipments.find(x => x.id === shipId);
+        if (!s) return;
+        const c = s.containers.find(x => x.id === containerId);
+        if (!c) return;
+        openModal(`
+            <div class="modal-header">
+                <h2>${t('editContainer')} &mdash; ${containerId}</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group"><label>${t('containerId')}</label><input id="ec-id" type="text" value="${c.id}"></div>
+                    <div class="form-group"><label>${t('bookingNo')} <span class="req">*</span></label>
+                        <select id="ec-bookingno">
+                            ${s.bookings.map(b => `<option value="${b.bookingNo}" ${c.bookingNo === b.bookingNo ? 'selected' : ''}>${b.bookingNo}</option>`).join('')}
+                            ${!s.bookings.find(b => b.bookingNo === c.bookingNo) ? `<option value="${c.bookingNo}" selected>${c.bookingNo} (${t('containerMismatch')})</option>` : ''}
+                        </select>
+                    </div>
+                    <div class="form-group"><label>${t('size')}</label><select id="ec-size">${MASTERS.containerSizes.map(sz => `<option ${c.size === sz ? 'selected' : ''}>${sz}</option>`).join('')}</select></div>
+                    <div class="form-group"><label>${t('containerType')}</label><input id="ec-type" type="text" value="${c.type}"></div>
+                    <div class="form-group"><label>${t('sealNo')}</label><input id="ec-seal" type="text" value="${c.sealNo}"></div>
+                    <div class="form-group"><label>${t('weight')}</label><input id="ec-weight" type="number" value="${c.weight}"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal()">${t('cancel')}</button>
+                <button class="btn btn-primary" onclick="NPM.saveEditContainer('${shipId}','${containerId}')">${t('saveChanges')}</button>
+            </div>
+        `);
+    },
+
+    saveEditContainer(shipId, containerId) {
+        const s = npmShipments.find(x => x.id === shipId);
+        if (!s) return;
+        const c = s.containers.find(x => x.id === containerId);
+        if (!c) return;
+        const newId = document.getElementById('ec-id').value.trim();
+        if (newId && newId !== c.id) c.id = newId;
+        c.bookingNo = document.getElementById('ec-bookingno').value;
+        c.size = parseInt(document.getElementById('ec-size').value);
+        c.type = document.getElementById('ec-type').value.trim();
+        c.sealNo = document.getElementById('ec-seal').value.trim();
+        c.weight = parseInt(document.getElementById('ec-weight').value) || 0;
+        closeModal();
+        showToast(t('containerSaved'), 'success');
+        this.showDetail(shipId);
+    },
+
+    // ========== RE-VALIDATE CONTAINERS ==========
+    revalidateContainers(shipId) {
+        const s = npmShipments.find(x => x.id === shipId);
+        if (!s) return;
+        const mismatched = s.containers.filter(c => !s.bookings.find(b => b.bookingNo === c.bookingNo));
+        const matched = s.containers.length - mismatched.length;
+        if (mismatched.length === 0) {
+            showToast(t('allContainersMatched'), 'success');
+        } else {
+            showToast(t('revalidateSuccess', { matched, mismatched: mismatched.length }), 'error');
+        }
         this.showDetail(shipId);
     },
 
@@ -803,6 +937,10 @@ const NPM = {
                             <label>${t('driver')} <span class="req">*</span></label>
                             <input id="eir-driver" type="text">
                         </div>
+                        <div class="form-group">
+                            <label>${t('driverLicenseNo')}</label>
+                            <input id="eir-driverlicense" type="text" placeholder="e.g. DL-009012">
+                        </div>
                         <div class="form-group full-width">
                             <label>${t('remarks')}</label>
                             <textarea id="eir-remarks" rows="2" placeholder="${t('remarks')}"></textarea>
@@ -861,6 +999,7 @@ const NPM = {
             carrier: carrier,
             weighingSlipNo: document.getElementById('eir-weighslip').value.trim(),
             driverName: driver,
+            driverLicense: document.getElementById('eir-driverlicense').value.trim(),
             remarks: document.getElementById('eir-remarks').value.trim(),
             status: 'completed',
         };

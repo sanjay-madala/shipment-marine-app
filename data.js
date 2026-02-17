@@ -266,18 +266,31 @@ let scmShipments = [
         pilot: 'Capt. Somchai',
         tug: MASTERS.tugBoats[0],
         bomItem: { ...MASTERS.services[0].items[0], wbs: '02S18BK0RS1  0000' },
-        reportIn: {
-            type: 'Customer',
-            stages: [
-                { name: 'Start', startTime: '2026-02-15T08:05', endTime: '2026-02-15T08:20', required: true },
-                { name: 'Stand by #1', startTime: '2026-02-15T08:20', endTime: '2026-02-15T08:35', required: false },
-                { name: 'Work Period #1', startTime: '2026-02-15T08:35', endTime: '2026-02-15T09:10', required: false },
-                { name: 'Stand by #2', startTime: '', endTime: '', required: false },
-                { name: 'Work Period #2', startTime: '', endTime: '', required: false },
-                { name: 'Stand by #3', startTime: '', endTime: '', required: false },
-                { name: 'Work Period #3', startTime: '', endTime: '', required: false },
-                { name: 'Last', startTime: '2026-02-15T10:00', endTime: '2026-02-15T10:00', required: true },
-            ],
+        reportIns: {
+            customer: {
+                stages: [
+                    { name: 'Start', startTime: '2026-02-15T08:05', endTime: '2026-02-15T08:20', required: true },
+                    { name: 'Stand by #1', startTime: '2026-02-15T08:20', endTime: '2026-02-15T08:35', required: false },
+                    { name: 'Work Period #1', startTime: '2026-02-15T08:35', endTime: '2026-02-15T09:10', required: false },
+                    { name: 'Stand by #2', startTime: 'skipped', endTime: 'skipped', required: false },
+                    { name: 'Work Period #2', startTime: 'skipped', endTime: 'skipped', required: false, skippable: true },
+                    { name: 'Stand by #3', startTime: 'skipped', endTime: 'skipped', required: false },
+                    { name: 'Work Period #3', startTime: 'skipped', endTime: 'skipped', required: false, skippable: true },
+                    { name: 'Last', startTime: '2026-02-15T10:00', endTime: '2026-02-15T10:00', required: true },
+                ],
+            },
+            internal: {
+                stages: [
+                    { name: 'Start', startTime: '2026-02-15T08:10', endTime: '2026-02-15T08:25', required: true },
+                    { name: 'Stand by #1', startTime: 'skipped', endTime: 'skipped', required: false },
+                    { name: 'Work Period #1', startTime: '2026-02-15T08:25', endTime: '2026-02-15T09:30', required: false },
+                    { name: 'Stand by #2', startTime: 'skipped', endTime: 'skipped', required: false },
+                    { name: 'Work Period #2', startTime: 'skipped', endTime: 'skipped', required: false, skippable: true },
+                    { name: 'Stand by #3', startTime: 'skipped', endTime: 'skipped', required: false },
+                    { name: 'Work Period #3', startTime: 'skipped', endTime: 'skipped', required: false, skippable: true },
+                    { name: 'Last', startTime: '2026-02-15T09:45', endTime: '2026-02-15T09:45', required: true },
+                ],
+            },
         },
     },
     {
@@ -295,18 +308,31 @@ let scmShipments = [
         pilot: 'Capt. Somchai',
         tug: MASTERS.tugBoats[1],
         bomItem: { ...MASTERS.services[0].items[1], wbs: '02S18BK0RS2  0000' },
-        reportIn: {
-            type: 'Internal',
-            stages: [
-                { name: 'Start', startTime: '2026-02-15T08:10', endTime: '2026-02-15T08:25', required: true },
-                { name: 'Stand by #1', startTime: '', endTime: '', required: false },
-                { name: 'Work Period #1', startTime: '2026-02-15T08:25', endTime: '2026-02-15T09:30', required: false },
-                { name: 'Stand by #2', startTime: '', endTime: '', required: false },
-                { name: 'Work Period #2', startTime: '', endTime: '', required: false },
-                { name: 'Stand by #3', startTime: '', endTime: '', required: false },
-                { name: 'Work Period #3', startTime: '', endTime: '', required: false },
-                { name: 'Last', startTime: '2026-02-15T09:45', endTime: '2026-02-15T09:45', required: true },
-            ],
+        reportIns: {
+            customer: {
+                stages: [
+                    { name: 'Start', startTime: '2026-02-15T08:12', endTime: '2026-02-15T08:22', required: true },
+                    { name: 'Stand by #1', startTime: 'skipped', endTime: 'skipped', required: false },
+                    { name: 'Work Period #1', startTime: '2026-02-15T08:22', endTime: '2026-02-15T09:25', required: false },
+                    { name: 'Stand by #2', startTime: 'skipped', endTime: 'skipped', required: false },
+                    { name: 'Work Period #2', startTime: 'skipped', endTime: 'skipped', required: false, skippable: true },
+                    { name: 'Stand by #3', startTime: 'skipped', endTime: 'skipped', required: false },
+                    { name: 'Work Period #3', startTime: 'skipped', endTime: 'skipped', required: false, skippable: true },
+                    { name: 'Last', startTime: '2026-02-15T09:40', endTime: '2026-02-15T09:40', required: true },
+                ],
+            },
+            internal: {
+                stages: [
+                    { name: 'Start', startTime: '2026-02-15T08:10', endTime: '2026-02-15T08:25', required: true },
+                    { name: 'Stand by #1', startTime: 'skipped', endTime: 'skipped', required: false },
+                    { name: 'Work Period #1', startTime: '2026-02-15T08:25', endTime: '2026-02-15T09:30', required: false },
+                    { name: 'Stand by #2', startTime: 'skipped', endTime: 'skipped', required: false },
+                    { name: 'Work Period #2', startTime: 'skipped', endTime: 'skipped', required: false, skippable: true },
+                    { name: 'Stand by #3', startTime: 'skipped', endTime: 'skipped', required: false },
+                    { name: 'Work Period #3', startTime: 'skipped', endTime: 'skipped', required: false, skippable: true },
+                    { name: 'Last', startTime: '2026-02-15T09:45', endTime: '2026-02-15T09:45', required: true },
+                ],
+            },
         },
     },
     {
@@ -324,7 +350,7 @@ let scmShipments = [
         pilot: 'Capt. Prasert',
         tug: MASTERS.tugBoats[2],
         bomItem: { ...MASTERS.services[1].items[0], wbs: '02S18BK0RS7  0000' },
-        reportIn: null,
+        reportIns: null,
     },
     {
         id: 'SH-1101.26.0004',
@@ -341,7 +367,7 @@ let scmShipments = [
         pilot: 'Capt. Prasert',
         tug: MASTERS.tugBoats[3],
         bomItem: { ...MASTERS.services[1].items[1], wbs: '02S18BK0RS9  0000' },
-        reportIn: null,
+        reportIns: null,
     },
 ];
 
@@ -366,20 +392,20 @@ let npmShipments = [
             { id: 'EIRU1234567', bookingNo: 'BKG-2026-0001', size: 40, type: 'GP', sealNo: 'SL-001', weight: 24500, inspected: true,
               eirOut: { id: 'EIR-OUT-001', time: '2026-02-16T08:00', event: 'check-out', salesOrder: '2108123570', containerNotReturning: false, containerNotClosed: false,
                 checkDate: '2026-02-16', checkTime: '08:00', reference: 'CO 2026 701', customerType: 'IM', lineAgent: 'Evergreen', containerStatus: 'FCL', forwarder: 'FW001', weight: '24.500', customer: 'ABC Trading Co.', commodity: 'Electronics', stuffingAt: 'CY', marking: 'ABC-001', srNo: 'SR-001',
-                shipmentNo: '80001001', itemNo: '0', truckNo: '83-0569', truckHeadPlate: '83-0569', truckTailPlate: '83-1051', officer: 'Waranee', billNo: '117089', carrier: 'ABC Transport', weighingSlipNo: '01', driverName: 'Somchai P.', remarks: '', status: 'completed' },
+                shipmentNo: '80001001', itemNo: '0', truckNo: '83-0569', truckHeadPlate: '83-0569', truckTailPlate: '83-1051', officer: 'Waranee', billNo: '117089', carrier: 'ABC Transport', weighingSlipNo: '01', driverName: 'Somchai P.', driverLicense: 'DL-007890', remarks: '', status: 'completed' },
               eirIn: { id: 'EIR-IN-001', time: '2026-02-17T14:00', event: 'check-in', salesOrder: '2108123570', containerNotReturning: false, containerNotClosed: false,
                 checkDate: '2026-02-17', checkTime: '14:00', reference: 'CO 2026 702', customerType: 'IM', lineAgent: 'Evergreen', containerStatus: 'FCL', forwarder: 'FW001', weight: '24.500', customer: 'ABC Trading Co.', commodity: 'Electronics', stuffingAt: 'CY', marking: 'ABC-001', srNo: 'SR-001',
-                shipmentNo: '80001001', itemNo: '0', truckNo: '83-0569', truckHeadPlate: '83-0569', truckTailPlate: '83-1051', officer: 'Waranee', billNo: '117090', carrier: 'ABC Transport', weighingSlipNo: '02', driverName: 'Somchai P.', remarks: '', status: 'completed' }},
+                shipmentNo: '80001001', itemNo: '0', truckNo: '83-0569', truckHeadPlate: '83-0569', truckTailPlate: '83-1051', officer: 'Waranee', billNo: '117090', carrier: 'ABC Transport', weighingSlipNo: '02', driverName: 'Somchai P.', driverLicense: 'DL-007890', remarks: '', status: 'completed' }},
             { id: 'CSQU7654321', bookingNo: 'BKG-2026-0001', size: 40, type: 'GP', sealNo: 'SL-002', weight: 22100, inspected: true,
               eirOut: { id: 'EIR-OUT-002', time: '2026-02-16T10:30', event: 'check-out', salesOrder: '2108123571', containerNotReturning: false, containerNotClosed: false,
                 checkDate: '2026-02-16', checkTime: '10:30', reference: 'CO 2026 703', customerType: 'IM', lineAgent: 'Evergreen', containerStatus: 'FCL', forwarder: 'FW001', weight: '22.100', customer: 'ABC Trading Co.', commodity: 'Electronics', stuffingAt: 'CY', marking: 'ABC-001', srNo: 'SR-001',
-                shipmentNo: '80001002', itemNo: '0', truckNo: '72-4321', truckHeadPlate: '72-4321', truckTailPlate: '72-4322', officer: 'Pranee', billNo: '117091', carrier: 'Fast Logistics', weighingSlipNo: '01', driverName: 'Prasert K.', remarks: '', status: 'completed' },
+                shipmentNo: '80001002', itemNo: '0', truckNo: '72-4321', truckHeadPlate: '72-4321', truckTailPlate: '72-4322', officer: 'Pranee', billNo: '117091', carrier: 'Fast Logistics', weighingSlipNo: '01', driverName: 'Prasert K.', driverLicense: 'DL-004321', remarks: '', status: 'completed' },
               eirIn: null },
             { id: 'MSKU9876543', bookingNo: 'BKG-2026-0002', size: 20, type: 'GP', sealNo: 'SL-003', weight: 18200, inspected: false, eirOut: null, eirIn: null },
             { id: 'OOLU3456789', bookingNo: 'BKG-2026-0003', size: 40, type: 'RF', sealNo: 'SL-004', weight: 26800, inspected: true,
               eirOut: { id: 'EIR-OUT-004', time: '2026-02-16T14:00', event: 'check-out', salesOrder: '2108123572', containerNotReturning: false, containerNotClosed: false,
                 checkDate: '2026-02-16', checkTime: '14:00', reference: 'CO 2026 704', customerType: 'IM', lineAgent: 'Maersk', containerStatus: 'FCL', forwarder: 'FW003', weight: '26.800', customer: 'Thai Foods International', commodity: 'Food & Beverage', stuffingAt: 'CY', marking: 'TFI-003', srNo: 'SR-003',
-                shipmentNo: '80001003', itemNo: '0', truckNo: '91-5678', truckHeadPlate: '91-5678', truckTailPlate: '91-5679', officer: 'Somporn', billNo: '117092', carrier: 'MTP Hauling', weighingSlipNo: '01', driverName: 'Wichai S.', remarks: '', status: 'completed' },
+                shipmentNo: '80001003', itemNo: '0', truckNo: '91-5678', truckHeadPlate: '91-5678', truckTailPlate: '91-5679', officer: 'Somporn', billNo: '117092', carrier: 'MTP Hauling', weighingSlipNo: '01', driverName: 'Wichai S.', driverLicense: 'DL-009012', remarks: '', status: 'completed' },
               eirIn: null },
             { id: 'TCLU5551234', bookingNo: 'BKG-NOMATCH', size: 20, type: 'GP', sealNo: 'SL-005', weight: 15000, inspected: false, eirOut: null, eirIn: null },
         ],
@@ -445,7 +471,9 @@ function generateId(prefix, list) {
 
 function formatDateTime(dt) {
     if (!dt) return '-';
+    if (dt === 'skipped') return t('skipped');
     const d = new Date(dt);
+    if (isNaN(d.getTime())) return '-';
     return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' +
            d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 }
@@ -495,9 +523,9 @@ function makeEmptyStages() {
         { name: 'Stand by #1', startTime: '', endTime: '', required: false },
         { name: 'Work Period #1', startTime: '', endTime: '', required: false },
         { name: 'Stand by #2', startTime: '', endTime: '', required: false },
-        { name: 'Work Period #2', startTime: '', endTime: '', required: false },
+        { name: 'Work Period #2', startTime: '', endTime: '', required: false, skippable: true },
         { name: 'Stand by #3', startTime: '', endTime: '', required: false },
-        { name: 'Work Period #3', startTime: '', endTime: '', required: false },
+        { name: 'Work Period #3', startTime: '', endTime: '', required: false, skippable: true },
         { name: 'Last', startTime: '', endTime: '', required: true },
     ];
 }

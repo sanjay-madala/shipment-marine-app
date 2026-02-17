@@ -475,7 +475,7 @@ const SCM = {
                 pilot: ts.pilot,
                 tug: item.tug,
                 bomItem: { ...item },
-                reportIn: null,
+                reportIns: null,
             });
         });
         const count = scmShipments.filter(s => s.orderId === id).length;
@@ -527,14 +527,22 @@ const SCM = {
     },
 
     // ========== SHIPMENT DETAIL ==========
+    _activeReportTab: 'customer',
+
     showShipmentDetail(id) {
         const s = scmShipments.find(x => x.id === id);
         if (!s) return;
 
-        const stages = s.reportIn ? s.reportIn.stages : makeEmptyStages();
         const canReportIn = s.status === 'dispatch' || s.status === 'review' || s.status === 'closed';
         const isReview = s.status === 'review';
         const isClosed = s.status === 'closed';
+        const ri = s.reportIns || {};
+        const hasCust = !!ri.customer;
+        const hasInt = !!ri.internal;
+        const canStartReport = s.status === 'dispatch';
+
+        const custComplete = hasCust && ri.customer.stages.find(st => st.name === 'Last')?.endTime;
+        const intComplete = hasInt && ri.internal.stages.find(st => st.name === 'Last')?.endTime;
 
         document.getElementById('scm-content').innerHTML = `
             <div class="detail-header">
@@ -545,7 +553,6 @@ const SCM = {
                 </div>
                 <div class="btn-group">
                     ${statusBadge(s.status)}
-                    ${s.status === 'dispatch' && !s.reportIn ? `<button class="btn btn-success" onclick="SCM.startReportIn('${s.id}')">${t('reportIn')}</button>` : ''}
                     ${isReview ? `<button class="btn btn-primary" onclick="SCM.closeShipment('${s.id}')">${t('confirmClose')}</button>` : ''}
                 </div>
             </div>
@@ -574,153 +581,167 @@ const SCM = {
                 <div class="card-header">
                     <h3>${t('reportInTitle')}</h3>
                     <div class="btn-group">
-                        ${s.reportIn ? `<span class="badge badge-${s.reportIn.type === 'Customer' ? 'open' : 'dispatch'}">${s.reportIn.type === 'Customer' ? t('customer') : t('internal')}</span>` : ''}
+                        ${hasCust ? `<span class="badge ${custComplete ? 'badge-completed' : 'badge-open'}">${t('customerReport')} ${custComplete ? '&#10003;' : ''}</span>` : ''}
+                        ${hasInt ? `<span class="badge ${intComplete ? 'badge-completed' : 'badge-dispatch'}">${t('internalReport')} ${intComplete ? '&#10003;' : ''}</span>` : ''}
                         ${isReview ? `<span style="font-size:12px;color:var(--warning)">${t('reviewHint')}</span>` : ''}
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="timeline">
-                        ${stages.map((stage, i) => {
-                            const hasStart = !!stage.startTime;
-                            const hasEnd = !!stage.endTime;
-                            const filled = hasStart && hasEnd;
-                            const isStandby = stage.name.includes('Stand by');
-                            const prevDone = i === 0 || (stages[i-1].startTime && stages[i-1].endTime);
-                            const isNext = !hasStart && prevDone && s.reportIn;
-                            const canRecord = s.status === 'dispatch' || isReview;
-                            const canEditTime = isReview;
-                            return `
-                                <div class="timeline-item">
-                                    <div class="timeline-dot ${filled ? 'filled' : ''} ${(hasStart && !hasEnd) ? 'current' : ''} ${isNext ? 'current' : ''}"></div>
-                                    <div class="timeline-label">
-                                        ${tStage(stage.name)}
-                                        <span style="font-size:11px;color:var(--gray-400);margin-left:6px">${stage.required ? t('stageRequired') : t('stageOptional')}</span>
-                                    </div>
-                                    ${filled ? `
-                                        <div class="timeline-time">${t('startTime')}: ${formatDateTime(stage.startTime)} &mdash; ${t('endTime')}: ${formatDateTime(stage.endTime)}</div>
-                                        ${canEditTime ? `
-                                            <div class="timeline-input" style="display:flex;gap:8px;margin-top:4px">
-                                                <input type="datetime-local" value="${stage.startTime}" onchange="SCM.adjustStageTime('${s.id}',${i},'start',this.value)" style="font-size:12px">
-                                                <input type="datetime-local" value="${stage.endTime}" onchange="SCM.adjustStageTime('${s.id}',${i},'end',this.value)" style="font-size:12px">
-                                            </div>
-                                        ` : ''}
-                                    ` : hasStart && !hasEnd ? `
-                                        <div class="timeline-time">${t('startTime')}: ${formatDateTime(stage.startTime)}</div>
-                                        ${canRecord ? `
-                                            <div class="timeline-input" style="display:flex;gap:8px;align-items:center;margin-top:4px">
-                                                <button class="btn btn-success btn-sm" onclick="SCM.recordStageEnd('${s.id}',${i})">${t('recordNow')} (${t('endTime')})</button>
-                                                <span style="font-size:11px;color:var(--gray-400)">${t('manualTimeInput')}</span>
-                                                <input type="datetime-local" id="manual-end-${i}" style="font-size:12px">
-                                                <button class="btn btn-outline btn-sm" onclick="SCM.recordStageEnd('${s.id}',${i},true)">${t('save')}</button>
-                                            </div>
-                                        ` : ''}
-                                    ` : isNext && canRecord ? `
-                                        <div class="timeline-input" style="display:flex;gap:8px;align-items:center;margin-top:4px">
-                                            <button class="btn btn-primary btn-sm" onclick="SCM.recordStageStart('${s.id}',${i})">${t('recordNow')} (${t('startTime')})</button>
-                                            ${isStandby ? `<span style="font-size:11px;color:var(--gray-400)">— ${t('stageOptional')}, </span>
-                                            <button class="btn btn-outline btn-sm" onclick="SCM.skipStage('${s.id}',${i})">${t('stageOptional')} — Skip</button>` : ''}
-                                            <span style="font-size:11px;color:var(--gray-400)">${t('manualTimeInput')}</span>
-                                            <input type="datetime-local" id="manual-start-${i}" style="font-size:12px">
-                                            <button class="btn btn-outline btn-sm" onclick="SCM.recordStageStart('${s.id}',${i},true)">${t('save')}</button>
-                                        </div>
-                                    ` : `<div class="timeline-time" style="color:var(--gray-300)">${isStandby ? t('stageOptional') : t('pending')}</div>`}
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
+                    ${canStartReport ? `
+                        <div style="display:flex;gap:8px;margin-bottom:16px">
+                            ${!hasCust ? `<button class="btn btn-primary btn-sm" onclick="SCM.startReportIn('${s.id}','customer')">${t('startCustomerReport')}</button>` : ''}
+                            ${!hasInt ? `<button class="btn btn-outline btn-sm" onclick="SCM.startReportIn('${s.id}','internal')">${t('startInternalReport')}</button>` : ''}
+                        </div>
+                    ` : ''}
+                    ${hasCust || hasInt ? `
+                        <div class="tabs" style="margin-bottom:16px">
+                            ${hasCust ? `<div class="tab ${this._activeReportTab === 'customer' ? 'active' : ''}" onclick="SCM._activeReportTab='customer';SCM.showShipmentDetail('${s.id}')">${t('customerReport')}</div>` : ''}
+                            ${hasInt ? `<div class="tab ${this._activeReportTab === 'internal' ? 'active' : ''}" onclick="SCM._activeReportTab='internal';SCM.showShipmentDetail('${s.id}')">${t('internalReport')}</div>` : ''}
+                        </div>
+                        ${this._renderTimeline(s, this._activeReportTab)}
+                    ` : `<div style="color:var(--gray-400);text-align:center;padding:20px">${t('reportNotStarted')}</div>`}
                 </div>
             </div>
             ` : ''}
         `;
     },
 
-    startReportIn(id) {
-        const s = scmShipments.find(x => x.id === id);
-        if (!s) return;
-        openModal(`
-            <div class="modal-header">
-                <h2>${t('startReportIn')} &mdash; ${id}</h2>
-                <button class="modal-close" onclick="closeModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label>${t('reportType')} <span class="req">*</span></label>
-                    <select id="ri-type">
-                        <option value="Customer">${t('customer')}</option>
-                        <option value="Internal">${t('internal')}</option>
-                    </select>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" onclick="closeModal()">${t('cancel')}</button>
-                <button class="btn btn-success" onclick="SCM.confirmReportIn('${id}')">${t('startReportIn')}</button>
-            </div>
-        `);
+    _renderTimeline(s, reportType) {
+        const ri = s.reportIns;
+        if (!ri || !ri[reportType]) return '';
+        const stages = ri[reportType].stages;
+        const isReview = s.status === 'review';
+        const canRecord = s.status === 'dispatch' || isReview;
+        const canEditTime = isReview;
+
+        return `<div class="timeline">
+            ${stages.map((stage, i) => {
+                const isSkipped = stage.startTime === 'skipped';
+                const hasStart = !!stage.startTime && !isSkipped;
+                const hasEnd = !!stage.endTime && stage.endTime !== 'skipped';
+                const filled = (hasStart && hasEnd) || isSkipped;
+                const isStandby = stage.name.includes('Stand by');
+                const isSkippableStage = isStandby || stage.skippable;
+                const prevDone = i === 0 || (stages[i-1].startTime && stages[i-1].endTime);
+                const isNext = !stage.startTime && prevDone && ri[reportType];
+                return `
+                    <div class="timeline-item">
+                        <div class="timeline-dot ${filled ? 'filled' : ''} ${(hasStart && !hasEnd) ? 'current' : ''} ${isNext ? 'current' : ''}"></div>
+                        <div class="timeline-label">
+                            ${tStage(stage.name)}
+                            <span style="font-size:11px;color:var(--gray-400);margin-left:6px">${stage.required ? t('stageRequired') : t('stageOptional')}</span>
+                        </div>
+                        ${isSkipped ? `
+                            <div class="timeline-time" style="color:var(--gray-400);font-style:italic">${t('skipped')}</div>
+                        ` : filled ? `
+                            <div class="timeline-time">${t('startTime')}: ${formatDateTime(stage.startTime)} &mdash; ${t('endTime')}: ${formatDateTime(stage.endTime)}</div>
+                            ${canEditTime ? `
+                                <div class="timeline-input" style="display:flex;gap:8px;margin-top:4px">
+                                    <input type="datetime-local" value="${stage.startTime}" onchange="SCM.adjustStageTime('${s.id}','${reportType}',${i},'start',this.value)" style="font-size:12px">
+                                    <input type="datetime-local" value="${stage.endTime}" onchange="SCM.adjustStageTime('${s.id}','${reportType}',${i},'end',this.value)" style="font-size:12px">
+                                </div>
+                            ` : ''}
+                        ` : hasStart && !hasEnd ? `
+                            <div class="timeline-time">${t('startTime')}: ${formatDateTime(stage.startTime)}</div>
+                            ${canRecord ? `
+                                <div class="timeline-input" style="display:flex;gap:8px;align-items:center;margin-top:4px;flex-wrap:wrap">
+                                    <button class="btn btn-success btn-sm" onclick="SCM.recordStageEnd('${s.id}','${reportType}',${i})">${t('recordNow')} (${t('endTime')})</button>
+                                    <span style="font-size:11px;color:var(--gray-400)">${t('manualTimeInput')}</span>
+                                    <input type="datetime-local" id="manual-end-${reportType}-${i}" style="font-size:12px">
+                                    <button class="btn btn-outline btn-sm" onclick="SCM.recordStageEnd('${s.id}','${reportType}',${i},true)">${t('save')}</button>
+                                </div>
+                            ` : ''}
+                        ` : isNext && canRecord ? `
+                            <div class="timeline-input" style="display:flex;gap:8px;align-items:center;margin-top:4px;flex-wrap:wrap">
+                                <button class="btn btn-primary btn-sm" onclick="SCM.recordStageStart('${s.id}','${reportType}',${i})">${t('recordNow')} (${t('startTime')})</button>
+                                ${isSkippableStage ? `<button class="btn btn-outline btn-sm" onclick="SCM.skipStage('${s.id}','${reportType}',${i})">${t('stageOptional')} — Skip</button>` : ''}
+                                <span style="font-size:11px;color:var(--gray-400)">${t('manualTimeInput')}</span>
+                                <input type="datetime-local" id="manual-start-${reportType}-${i}" style="font-size:12px">
+                                <button class="btn btn-outline btn-sm" onclick="SCM.recordStageStart('${s.id}','${reportType}',${i},true)">${t('save')}</button>
+                            </div>
+                        ` : `<div class="timeline-time" style="color:var(--gray-300)">${isSkippableStage ? t('stageOptional') : t('pending')}</div>`}
+                    </div>
+                `;
+            }).join('')}
+        </div>`;
     },
 
-    confirmReportIn(id) {
+    startReportIn(id, type) {
         const s = scmShipments.find(x => x.id === id);
         if (!s) return;
-        s.reportIn = {
-            type: document.getElementById('ri-type').value,
-            stages: makeEmptyStages(),
-        };
-        closeModal();
+        if (!s.reportIns) s.reportIns = {};
+        s.reportIns[type] = { stages: makeEmptyStages() };
+        this._activeReportTab = type;
         showToast(t('reportInStarted'), 'success');
         this.showShipmentDetail(id);
     },
 
-    recordStageStart(id, stageIdx, manual) {
+    recordStageStart(id, reportType, stageIdx, manual) {
         const s = scmShipments.find(x => x.id === id);
-        if (!s || !s.reportIn) return;
-        const stage = s.reportIn.stages[stageIdx];
+        if (!s || !s.reportIns || !s.reportIns[reportType]) return;
+        const stages = s.reportIns[reportType].stages;
+        const stage = stages[stageIdx];
         if (manual) {
-            const el = document.getElementById(`manual-start-${stageIdx}`);
+            const el = document.getElementById(`manual-start-${reportType}-${stageIdx}`);
             if (!el || !el.value) return;
             stage.startTime = el.value;
         } else {
-            stage.startTime = new Date().toISOString().slice(0, 16);
+            // Auto-fill from previous stage's end time
+            const prevStage = stageIdx > 0 ? stages[stageIdx - 1] : null;
+            if (prevStage && prevStage.endTime && prevStage.endTime !== 'skipped') {
+                stage.startTime = prevStage.endTime;
+                showToast(t('autoFilledFromPrevious'), 'success');
+            } else {
+                stage.startTime = new Date().toISOString().slice(0, 16);
+                showToast(t('stageRecorded', { stage: tStage(stage.name), time: formatDateTime(stage.startTime) }), 'success');
+            }
         }
-        showToast(t('stageRecorded', { stage: tStage(stage.name), time: formatDateTime(stage.startTime) }), 'success');
         this.showShipmentDetail(id);
     },
 
-    recordStageEnd(id, stageIdx, manual) {
+    recordStageEnd(id, reportType, stageIdx, manual) {
         const s = scmShipments.find(x => x.id === id);
-        if (!s || !s.reportIn) return;
-        const stage = s.reportIn.stages[stageIdx];
+        if (!s || !s.reportIns || !s.reportIns[reportType]) return;
+        const stage = s.reportIns[reportType].stages[stageIdx];
         if (manual) {
-            const el = document.getElementById(`manual-end-${stageIdx}`);
+            const el = document.getElementById(`manual-end-${reportType}-${stageIdx}`);
             if (!el || !el.value) return;
             stage.endTime = el.value;
         } else {
             stage.endTime = new Date().toISOString().slice(0, 16);
         }
 
-        // Check if Last stage end is recorded → move to review
+        // Check if Last stage end is recorded → check both reports for review
         if (stage.name === 'Last' && stage.endTime) {
-            s.status = 'review';
-            showToast(t('shipmentUnderReview', { id }), 'success');
+            const ri = s.reportIns;
+            const custDone = ri.customer && ri.customer.stages.find(st => st.name === 'Last')?.endTime;
+            const intDone = ri.internal && ri.internal.stages.find(st => st.name === 'Last')?.endTime;
+            if (custDone && intDone) {
+                s.status = 'review';
+                showToast(t('shipmentUnderReview', { id }), 'success');
+            } else {
+                const whichDone = reportType === 'customer' ? t('customerReportComplete') : t('internalReportComplete');
+                showToast(`${whichDone}. ${t('bothReportsRequired')}`, 'success');
+            }
         } else {
             showToast(t('stageRecorded', { stage: tStage(stage.name), time: formatDateTime(stage.endTime) }), 'success');
         }
         this.showShipmentDetail(id);
     },
 
-    skipStage(id, stageIdx) {
+    skipStage(id, reportType, stageIdx) {
         const s = scmShipments.find(x => x.id === id);
-        if (!s || !s.reportIn) return;
-        // Mark skipped stage as done with empty times (skip over it)
-        s.reportIn.stages[stageIdx].startTime = 'skipped';
-        s.reportIn.stages[stageIdx].endTime = 'skipped';
+        if (!s || !s.reportIns || !s.reportIns[reportType]) return;
+        s.reportIns[reportType].stages[stageIdx].startTime = 'skipped';
+        s.reportIns[reportType].stages[stageIdx].endTime = 'skipped';
         this.showShipmentDetail(id);
     },
 
-    adjustStageTime(id, stageIdx, which, value) {
+    adjustStageTime(id, reportType, stageIdx, which, value) {
         const s = scmShipments.find(x => x.id === id);
-        if (!s || !s.reportIn) return;
-        if (which === 'start') s.reportIn.stages[stageIdx].startTime = value;
-        else s.reportIn.stages[stageIdx].endTime = value;
+        if (!s || !s.reportIns || !s.reportIns[reportType]) return;
+        if (which === 'start') s.reportIns[reportType].stages[stageIdx].startTime = value;
+        else s.reportIns[reportType].stages[stageIdx].endTime = value;
         showToast(t('changesSaved'), 'success');
     },
 
