@@ -27,19 +27,26 @@
 
     <!-- SCM Module -->
     <div id="scm-module" class="module">
-        <nav class="sidebar">
-            <a class="nav-item active" data-view="scm-tug-list">Tug Schedules</a>
-            <a class="nav-item" data-view="scm-shipment-list">Shipments</a>
+        <nav class="sidebar" id="scm-sidebar">
+            <div class="sidebar-toggle">
+                <button class="sidebar-toggle-btn" id="scm-toggle-btn" onclick="toggleSidebar('scm')">&lt;</button>
+            </div>
+            <a class="nav-item active" data-view="scm-tug-list"><span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="3"/><line x1="12" y1="8" x2="12" y2="21"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/></svg></span><span class="nav-label">Tug Schedules</span></a>
+            <a class="nav-item" data-view="scm-shipment-list"><span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span><span class="nav-label">Shipments</span></a>
+            <a class="nav-item" data-view="scm-settlement"><span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span><span class="nav-label">Settlement</span></a>
         </nav>
         <main class="content" id="scm-content"></main>
     </div>
 
     <!-- NPM Module -->
     <div id="npm-module" class="module hidden">
-        <nav class="sidebar">
-            <a class="nav-item active" data-view="npm-shipment-list">Shipments</a>
-            <a class="nav-item" data-view="npm-eir-list">EIR</a>
-            <a class="nav-item" data-view="npm-inspection">Inspection</a>
+        <nav class="sidebar" id="npm-sidebar">
+            <div class="sidebar-toggle">
+                <button class="sidebar-toggle-btn" id="npm-toggle-btn" onclick="toggleSidebar('npm')">&lt;</button>
+            </div>
+            <a class="nav-item active" data-view="npm-shipment-list"><span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></span><span class="nav-label">Shipments</span></a>
+            <a class="nav-item" data-view="npm-eir-list"><span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><line x1="16" y1="12" x2="8" y2="12"/><line x1="16" y1="16" x2="8" y2="16"/></svg></span><span class="nav-label">EIR</span></a>
+            <a class="nav-item" data-view="npm-inspection"><span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><span class="nav-label">Inspection</span></a>
         </nav>
         <main class="content" id="npm-content"></main>
     </div>
@@ -52,6 +59,7 @@
     <script src="i18n.js"></script>
     <script src="data.js"></script>
     <script src="scm.js"></script>
+    <script src="settlement.js"></script>
     <script src="npm.js"></script>
     <script src="app.js"></script>
 </body>

@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Container Inspection — Mobile Prototype</title>
+<style>
+:root {
+  --bg:#f2f4f7; --surface:#fff; --border:#e5e7eb;
+  --primary:#2563eb; --primary-light:#eff6ff;
+  --success:#16a34a; --success-light:#f0fdf4;
+  --danger:#dc2626;  --warning:#d97706;
+  --gray-100:#f3f4f6; --gray-200:#e5e7eb; --gray-300:#d1d5db;
+  --gray-400:#9ca3af; --gray-500:#6b7280; --gray-600:#4b5563;
+  --gray-700:#374151; --gray-800:#1f2937; --gray-900:#111827;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.06);
+  --shadow:0 1px 3px rgba(0,0,0,.1),0 1px 2px rgba(0,0,0,.06);
+  --radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:#1a1a2e;
+  display:flex;justify-content:center;align-items:flex-start;
+  min-height:100vh;padding:32px 16px;gap:32px;flex-wrap:wrap;
+}
+
+/* ── Phone shell ── */
+.phone{
+  width:390px;height:844px;background:var(--bg);
+  border-radius:52px;flex-shrink:0;
+  box-shadow:0 0 0 10px #2c2c2e,0 0 0 12px #3a3a3c,0 40px 100px rgba(0,0,0,.7);
+  position:relative;overflow:hidden;display:flex;flex-direction:column;
+}
+.dynamic-island{
+  position:absolute;top:14px;left:50%;transform:translateX(-50%);
+  width:126px;height:37px;background:#000;border-radius:20px;z-index:200;
+}
+.status-bar{
+  height:58px;flex-shrink:0;display:flex;align-items:flex-end;
+  justify-content:space-between;padding:0 30px 8px;
+  font-size:15px;font-weight:700;color:var(--gray-800);z-index:100;
+}
+.status-icons{display:flex;gap:5px;align-items:center}
+
+/* ── App ── */
+.app{flex:1;overflow:hidden;position:relative;}
+.screen{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  background:var(--bg);transform:translateX(0);
+  transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .3s ease;
+}
+.screen.off-right{transform:translateX(100%)}
+.screen.off-left{transform:translateX(-28%);opacity:.6}
+.screen.hidden{display:none}
+
+/* ── Nav bar ── */
+.nav-bar{
+  padding:10px 16px 10px;background:var(--surface);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;flex-shrink:0;
+  box-shadow:var(--shadow-sm);
+}
+.nav-back{
+  width:34px;height:34px;border-radius:50%;background:var(--gray-100);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:20px;color:var(--primary);border:none;flex-shrink:0;
+  transition:background .15s;
+}
+.nav-back:active{background:var(--gray-200)}
+.nav-title{font-size:17px;font-weight:700;color:var(--gray-900);flex:1}
+.nav-right{
+  width:34px;height:34px;border-radius:50%;background:var(--primary-light);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:17px;border:none;flex-shrink:0;
+}
+
+/* ── Scroll ── */
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:14px}
+.scroll::-webkit-scrollbar{display:none}
+
+/* ── Cards ── */
+.card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:10px}
+
+/* ── Buttons ── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:0 20px;height:44px;border-radius:22px;
+  font-size:14.5px;font-weight:600;cursor:pointer;border:none;
+  transition:opacity .15s,transform .1s;
+}
+.btn:active{opacity:.75;transform:scale(.97)}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-success{background:var(--success);color:#fff}
+.btn-outline{background:transparent;border:1.5px solid var(--primary);color:var(--primary)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-full{width:100%}
+.btn-lg{height:52px;border-radius:16px;font-size:16px}
+
+/* ── Badge ── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-pending{background:#fef9c3;color:#854d0e;border:1px solid #fde68a}
+.badge-done{background:#dcfce7;color:#166534;border:1px solid #bbf7d0}
+.badge-issues{background:#fee2e2;color:#991b1b;border:1px solid #fecaca}
+
+/* ── Tab bar ── */
+.tab-bar{
+  height:80px;background:rgba(255,255,255,.94);backdrop-filter:blur(20px);
+  border-top:1px solid rgba(0,0,0,.08);display:flex;align-items:flex-start;
+  padding-top:8px;flex-shrink:0;
+}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 0}
+.tab-icon{font-size:22px;line-height:1}
+.tab-label{font-size:10px;font-weight:500;color:var(--gray-400)}
+.tab-item.active .tab-label{color:var(--primary)}
+
+/* ── Sticky bottom ── */
+.sticky-bot{padding:10px 14px 6px;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0}
+
+/* ═══════════════════ SCREEN 1: LIST ═══════════════════ */
+.list-hero{
+  background:linear-gradient(140deg,#1d4ed8,#2563eb);
+  padding:16px 18px 22px;flex-shrink:0;
+}
+.list-hero-title{font-size:22px;font-weight:800;color:#fff;margin-bottom:3px}
+.list-hero-sub{font-size:12.5px;color:rgba(255,255,255,.7);margin-bottom:14px}
+.search-row{display:flex;gap:8px}
+.search-box{
+  flex:1;height:44px;background:rgba(255,255,255,.15);backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,.3);border-radius:12px;
+  display:flex;align-items:center;gap:8px;padding:0 14px;cursor:pointer;
+}
+.search-box span{font-size:13px;color:rgba(255,255,255,.75)}
+.scan-btn{
+  width:44px;height:44px;border-radius:12px;
+  background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);
+  display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;
+}
+.scan-btn:active{background:rgba(255,255,255,.35)}
+
+/* Stats */
+.stats-strip{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:0;
+  background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.stat-cell{padding:10px 0;text-align:center;border-right:1px solid var(--border)}
+.stat-cell:last-child{border-right:none}
+.stat-num{font-size:18px;font-weight:800;color:var(--gray-900)}
+.stat-num.blue{color:var(--primary)}.stat-num.green{color:var(--success)}.stat-num.red{color:var(--danger)}
+.stat-lbl{font-size:9.5px;color:var(--gray-400);font-weight:500;margin-top:1px;text-transform:uppercase;letter-spacing:.03em}
+
+/* Filter chips */
+.chips{display:flex;gap:7px;padding:10px 14px;overflow-x:auto;flex-shrink:0}
+.chips::-webkit-scrollbar{display:none}
+.chip{
+  white-space:nowrap;padding:5px 13px;border-radius:20px;font-size:12px;font-weight:600;
+  border:1.5px solid var(--gray-200);color:var(--gray-500);background:var(--surface);
+  cursor:pointer;flex-shrink:0;transition:all .15s;
+}
+.chip.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.chip:active{transform:scale(.95)}
+
+/* Container card */
+.cont-card{
+  background:var(--surface);border-radius:var(--radius);padding:13px 14px;
+  margin-bottom:9px;display:flex;align-items:center;gap:11px;cursor:pointer;
+  transition:transform .15s;border:1.5px solid transparent;
+}
+.cont-card:active{transform:scale(.985)}
+.cont-card.pending{border-color:#fde68a}
+.cont-card.done{border-color:#bbf7d0}
+.cont-card.issues{border-color:#fecaca}
+.cont-icon{width:44px;height:44px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.cont-icon.pending{background:#fef9c3}
+.cont-icon.done{background:#dcfce7}
+.cont-icon.issues{background:#fee2e2}
+.cont-info{flex:1;min-width:0}
+.cont-id{font-size:13.5px;font-weight:700;color:var(--gray-900);font-family:monospace;letter-spacing:.02em}
+.cont-sub{font-size:11.5px;color:var(--gray-400);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cont-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.cont-size{font-size:11px;font-weight:600;color:var(--gray-500);background:var(--gray-100);padding:2px 8px;border-radius:6px}
+
+/* ═══════════════════ SCREEN 2: DETAIL ═══════════════════ */
+.detail-hero{
+  background:linear-gradient(160deg,#1e3a8a,#2563eb);
+  padding:20px 18px 28px;flex-shrink:0;position:relative;overflow:hidden;
+}
+.detail-hero::before{content:'';position:absolute;right:-24px;top:-24px;width:130px;height:130px;background:rgba(255,255,255,.06);border-radius:50%}
+.detail-hero::after{content:'';position:absolute;right:34px;top:54px;width:72px;height:72px;background:rgba(255,255,255,.06);border-radius:50%}
+.detail-id{font-family:monospace;font-size:20px;font-weight:800;color:#fff;letter-spacing:.04em}
+.detail-vessel{font-size:12.5px;color:rgba(255,255,255,.7);margin-top:4px}
+.detail-chips{display:flex;gap:7px;margin-top:13px}
+.d-chip{padding:4px 12px;border-radius:20px;font-size:11.5px;font-weight:600;background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.25)}
+
+/* Container diagram */
+.diagram-wrap{background:var(--surface);border-radius:var(--radius);padding:14px;margin-bottom:10px;box-shadow:var(--shadow-sm)}
+.diagram-label{font-size:11px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;text-align:center}
+.diagram-legend{display:flex;justify-content:center;gap:14px;margin-top:8px}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--gray-500)}
+.legend-dot{width:8px;height:8px;border-radius:50%}
+
+/* Info list */
+.info-list{background:var(--surface);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm);margin-bottom:10px}
+.info-row{display:flex;align-items:center;padding:12px 15px;border-bottom:1px solid var(--gray-100)}
+.info-row:last-child{border-bottom:none}
+.info-lbl{font-size:12.5px;color:var(--gray-400);width:108px;flex-shrink:0}
+.info-val{font-size:13px;font-weight:600;color:var(--gray-800);flex:1}
+.info-val.mono{font-family:monospace}
+
+/* ═══════════════════ SCREEN 3: FORM ═══════════════════ */
+.form-progress{background:var(--surface);padding:11px 15px;border-bottom:1px solid var(--border);flex-shrink:0}
+.prog-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
+.prog-lbl{font-size:12px;color:var(--gray-500)}
+.prog-count{font-size:13px;font-weight:700;color:var(--primary)}
+.prog-bar-bg{height:5px;background:var(--gray-200);border-radius:3px;overflow:hidden}
+.prog-bar-fill{height:100%;background:linear-gradient(to right,#2563eb,#38bdf8);border-radius:3px;transition:width .4s ease}
+
+.insp-card{background:var(--surface);border-radius:var(--radius);padding:13px 14px;margin-bottom:10px;box-shadow:var(--shadow-sm)}
+.insp-label{font-size:11px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px}
+.insp-input{width:100%;height:44px;border:1.5px solid var(--gray-200);border-radius:10px;padding:0 13px;font-size:15px;color:var(--gray-800);outline:none;transition:border-color .2s}
+.insp-input:focus{border-color:var(--primary)}
+
+/* Category */
+.cat-section{margin-bottom:10px}
+.cat-hdr{
+  display:flex;align-items:center;gap:8px;padding:10px 15px;
+  background:var(--gray-800);border-radius:var(--radius) var(--radius) 0 0;cursor:pointer;
+}
+.cat-hdr.has-items{background:#1e3a8a}
+.cat-icon{font-size:16px}
+.cat-name{font-size:13px;font-weight:700;color:#fff;flex:1}
+.cat-count{font-size:11.5px;color:rgba(255,255,255,.6)}
+.cat-chevron{font-size:11px;color:rgba(255,255,255,.6);transition:transform .2s}
+.cat-hdr.collapsed .cat-chevron{transform:rotate(-90deg)}
+.cat-items{background:var(--surface);border-radius:0 0 var(--radius) var(--radius);overflow:hidden}
+.cat-items.collapsed{display:none}
+
+/* Check item */
+.chk-item{display:flex;align-items:center;gap:10px;padding:11px 15px;border-bottom:1px solid var(--gray-100)}
+.chk-item:last-child{border-bottom:none}
+.chk-label{font-size:13px;color:var(--gray-700);flex:1;line-height:1.4}
+.chk-label.fail{color:var(--danger)}
+
+/* Pass/Fail pill */
+.pf{display:flex;border-radius:8px;overflow:hidden;border:1.5px solid var(--gray-200);flex-shrink:0}
+.pf-btn{width:40px;height:32px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;cursor:pointer;border:none;background:transparent;transition:background .15s,color .15s}
+.pf-btn.pass{color:var(--gray-400)}
+.pf-btn.pass.on{background:var(--success);color:#fff}
+.pf-btn.fail{color:var(--gray-400);border-left:1.5px solid var(--gray-200)}
+.pf-btn.fail.on{background:var(--danger);color:#fff}
+
+/* Note row */
+.note-row{display:none;background:#fef2f2;border-top:1px dashed #fecaca}
+.note-row.show{display:flex;align-items:center;gap:8px;padding:7px 15px 9px}
+.note-row input{flex:1;height:32px;border:1px solid #fecaca;border-radius:7px;padding:0 10px;font-size:12.5px;color:var(--danger);background:#fff;outline:none}
+
+/* ═══════════════════ SCREEN 4: REPORT ═══════════════════ */
+.report-hero{padding:68px 18px 22px;flex-shrink:0}
+.report-hero.pass{background:linear-gradient(135deg,#065f46,#16a34a)}
+.report-hero.fail{background:linear-gradient(135deg,#7f1d1d,#dc2626)}
+.result-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:4px 13px;font-size:12px;font-weight:700;color:#fff;margin-bottom:8px}
+.report-cont-id{font-family:monospace;font-size:20px;font-weight:800;color:#fff}
+.report-sub{font-size:12px;color:rgba(255,255,255,.72);margin-top:3px}
+
+.score-row{display:grid;grid-template-columns:repeat(3,1fr);background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:10px}
+.score-cell{padding:14px 0;text-align:center;border-right:1px solid var(--gray-100)}
+.score-cell:last-child{border-right:none}
+.score-num{font-size:24px;font-weight:800;color:var(--gray-900)}
+.score-num.blue{color:var(--primary)}.score-num.green{color:var(--success)}.score-num.red{color:var(--danger)}
+.score-lbl{font-size:10px;color:var(--gray-400);font-weight:500;margin-top:2px}
+
+.cat-result{background:var(--surface);border-radius:var(--radius);overflow:hidden;margin-bottom:10px;box-shadow:var(--shadow-sm)}
+.cat-result-hdr{display:flex;align-items:center;gap:9px;padding:11px 15px;border-bottom:1px solid var(--gray-100)}
+.cat-result-name{font-size:13px;font-weight:700;color:var(--gray-800);flex:1}
+.cat-result-count{font-size:12px;color:var(--gray-400)}
+.cat-status{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px}
+.cat-ok{background:#dcfce7;color:var(--success)}.cat-err{background:#fee2e2;color:var(--danger)}
+
+.report-item{display:flex;align-items:center;gap:9px;padding:8px 15px;border-bottom:1px solid var(--gray-100)}
+.report-item:last-child{border-bottom:none}
+.r-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.dot-ok{background:var(--success)}.dot-err{background:var(--danger)}
+.r-name{font-size:12.5px;color:var(--gray-700);flex:1}
+.r-note{font-size:11px;color:var(--danger)}
+.r-tick{font-size:14px}.r-tick.ok{color:var(--success)}.r-tick.err{color:var(--danger)}
+
+/* ═══════════════════ SCREEN 5: SCAN ═══════════════════ */
+.scan-screen{background:#000}
+.scan-area{flex:1;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.scan-bg{position:absolute;inset:0;background:radial-gradient(ellipse at center,#0f172a 0%,#000 100%)}
+.scan-frame{position:relative;z-index:10;width:220px;height:148px}
+.scan-corner{position:absolute;width:22px;height:22px;border-color:#38bdf8;border-style:solid}
+.sc-tl{top:0;left:0;border-width:3px 0 0 3px}
+.sc-tr{top:0;right:0;border-width:3px 3px 0 0}
+.sc-bl{bottom:0;left:0;border-width:0 0 3px 3px}
+.sc-br{bottom:0;right:0;border-width:0 3px 3px 0}
+.scan-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(to right,transparent,#38bdf8,transparent);animation:scanLine 2s ease-in-out infinite}
+@keyframes scanLine{0%{top:0}50%{top:calc(100% - 2px)}100%{top:0}}
+.scan-hint{position:relative;z-index:10;margin-top:20px;font-size:13px;color:rgba(255,255,255,.55);text-align:center}
+
+/* ═══════════════════ SHEET (overlay) ═══════════════════ */
+.sheet-overlay{position:absolute;inset:0;background:rgba(0,0,0,.45);z-index:300;display:none;align-items:flex-end}
+.sheet-overlay.open{display:flex;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.sheet{width:100%;background:var(--surface);border-radius:20px 20px 0 0;padding:0 0 24px;animation:slideUp .28s cubic-bezier(.4,0,.2,1)}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet-handle{width:36px;height:4px;background:var(--gray-300);border-radius:2px;margin:10px auto 13px}
+.sheet-title{font-size:16px;font-weight:700;color:var(--gray-900);padding:0 20px 12px;border-bottom:1px solid var(--border)}
+.sheet-body{padding:16px 20px}
+.sheet-input{width:100%;height:50px;border:2px solid var(--border);border-radius:13px;padding:0 16px;font-size:16px;color:var(--gray-800);font-family:monospace;letter-spacing:.04em;text-transform:uppercase;outline:none;transition:border-color .2s}
+.sheet-input:focus{border-color:var(--primary)}
+.sheet-hint{font-size:11.5px;color:var(--gray-400);margin-top:6px}
+.sheet-btns{display:flex;gap:10px;padding:0 20px;margin-top:4px}
+
+/* ═══════════════════ LABEL PANEL ═══════════════════ */
+.label-panel{
+  width:260px;flex-shrink:0;display:flex;flex-direction:column;gap:0;
+  align-self:flex-start;position:sticky;top:32px;
+}
+.label-section{margin-bottom:20px}
+.label-section-title{font-size:11px;font-weight:700;color:#4a5568;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;padding-left:4px}
+.label-item{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
+.label-num{
+  width:22px;height:22px;border-radius:50%;background:var(--primary);color:#fff;
+  font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;
+}
+.label-text{font-size:13px;color:#e2e8f0;line-height:1.5}
+.label-text strong{color:#fff;font-weight:600}
+.label-arrow{
+  font-size:18px;color:#38bdf8;margin:8px 0;display:flex;align-items:center;gap:8px;
+  font-size:12px;color:rgba(255,255,255,.4);padding-left:4px;
+}
+.nav-dots{display:flex;gap:6px;justify-content:center;padding:14px 0 4px}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.25);cursor:pointer;transition:background .2s}
+.nav-dot.active{background:#38bdf8;width:20px;border-radius:4px}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════ PHONE ══════════════════════════ -->
+<div class="phone" id="phone">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="status-icons">
+      <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><rect x="0" y="4" width="3" height="7" rx=".8" opacity=".3"/><rect x="4.5" y="2.5" width="3" height="8.5" rx=".8" opacity=".55"/><rect x="9" y="1" width="3" height="10" rx=".8" opacity=".8"/><rect x="13.5" y="0" width="2.5" height="11" rx=".8"/></svg>
+      <svg width="16" height="10" viewBox="0 0 22 10" fill="currentColor"><rect x="0" y="2" width="17" height="6" rx="1.5" opacity=".25"/><rect x="0" y="2" width="13" height="6" rx="1.5"/><rect x="18.5" y="3.5" width="2.5" height="3" rx=".8" opacity=".5"/></svg>
+    </div>
+  </div>
+
+  <div class="app">
+
+    <!-- ══ S1: LIST ══ -->
+    <div class="screen" id="s-list">
+      <div class="list-hero">
+        <div class="list-hero-title">Container Inspection</div>
+        <div class="list-hero-sub">NPM — Container Shipping</div>
+        <div class="search-row">
+          <div class="search-box" onclick="gotoScan()">
+            <span style="font-size:16px">🔍</span>
+            <span>Search container ID...</span>
+          </div>
+          <div class="scan-btn" onclick="gotoScan()">⬛</div>
+        </div>
+      </div>
+
+      <div class="stats-strip" id="stats-strip"></div>
+
+      <div class="chips" id="chips-row"></div>
+
+      <div class="scroll" id="list-scroll"></div>
+
+      <div class="tab-bar">
+        <div class="tab-item"><div class="tab-icon">📦</div><div class="tab-label">Shipments</div></div>
+        <div class="tab-item"><div class="tab-icon">📋</div><div class="tab-label">EIR</div></div>
+        <div class="tab-item active"><div class="tab-icon">🔍</div><div class="tab-label">Inspect</div></div>
+        <div class="tab-item"><div class="tab-icon">👤</div><div class="tab-label">Profile</div></div>
+      </div>
+    </div>
+
+    <!-- ══ S2: DETAIL ══ -->
+    <div class="screen off-right hidden" id="s-detail">
+      <div class="nav-bar">
+        <button class="nav-back" onclick="back()">‹</button>
+        <div class="nav-title" id="d-nav-title">Detail</div>
+        <button class="nav-right">⋯</button>
+      </div>
+      <div class="scroll" id="d-scroll">
+        <div id="d-hero" style="margin:-14px -14px 14px;border-radius:0"></div>
+
+        <!-- Diagram -->
+        <div class="diagram-wrap">
+          <div class="diagram-label">Container Diagram</div>
+          <svg viewBox="0 0 300 130" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:290px;display:block;margin:0 auto">
+            <!-- Body -->
+            <rect x="18" y="32" width="224" height="78" rx="3" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5"/>
+            <!-- Top -->
+            <path d="M18 32 L44 12 L268 12 L242 32 Z" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5"/>
+            <!-- Right side -->
+            <path d="M242 32 L268 12 L268 90 L242 110 Z" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1.5"/>
+            <!-- Corrugations -->
+            <line x1="55" y1="32" x2="55" y2="110" stroke="#94a3b8" stroke-width="1" opacity=".45"/>
+            <line x1="92" y1="32" x2="92" y2="110" stroke="#94a3b8" stroke-width="1" opacity=".45"/>
+            <line x1="129" y1="32" x2="129" y2="110" stroke="#94a3b8" stroke-width="1" opacity=".45"/>
+            <line x1="166" y1="32" x2="166" y2="110" stroke="#94a3b8" stroke-width="1" opacity=".45"/>
+            <line x1="203" y1="32" x2="203" y2="110" stroke="#94a3b8" stroke-width="1" opacity=".45"/>
+            <!-- Door -->
+            <rect x="203" y="34" width="37" height="74" rx="1" fill="#bfdbfe" stroke="#3b82f6" stroke-width="1.5"/>
+            <line x1="221" y1="34" x2="221" y2="108" stroke="#3b82f6" stroke-width="1" opacity=".6"/>
+            <circle cx="207" cy="71" r="3" fill="#3b82f6"/>
+            <!-- Floor -->
+            <rect x="18" y="108" width="224" height="5" rx="2" fill="#94a3b8"/>
+            <!-- Corner fittings -->
+            <rect x="14" y="28" width="9" height="9" rx="2" fill="#64748b"/>
+            <rect x="237" y="28" width="9" height="9" rx="2" fill="#64748b"/>
+            <rect x="14" y="104" width="9" height="9" rx="2" fill="#64748b"/>
+            <rect x="237" y="104" width="9" height="9" rx="2" fill="#64748b"/>
+            <!-- Inspection dots -->
+            <circle id="dot-roof"  cx="130" cy="22" r="6" fill="#34d399" stroke="#fff" stroke-width="1.5"/>
+            <circle id="dot-side"  cx="40"  cy="72" r="6" fill="#34d399" stroke="#fff" stroke-width="1.5"/>
+            <circle id="dot-under" cx="130" cy="113" r="6" fill="#fbbf24" stroke="#fff" stroke-width="1.5"/>
+            <circle id="dot-door"  cx="221" cy="71" r="6" fill="#34d399" stroke="#fff" stroke-width="1.5"/>
+            <circle id="dot-top"   cx="156" cy="22" r="6" fill="#34d399" stroke="#fff" stroke-width="1.5"/>
+          </svg>
+          <div class="diagram-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#34d399"></div>OK</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#fbbf24"></div>Attention</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#f87171"></div>Failed</div>
+          </div>
+        </div>
+
+        <!-- Info -->
+        <div class="info-list" id="d-info"></div>
+
+        <div style="height:72px"></div>
+      </div>
+      <div class="sticky-bot">
+        <button class="btn btn-full btn-lg" id="d-action-btn">Start Inspection</button>
+      </div>
+    </div>
+
+    <!-- ══ S3: FORM ══ -->
+    <div class="screen off-right hidden" id="s-form">
+      <div class="nav-bar">
+        <button class="nav-back" onclick="back()">‹</button>
+        <div class="nav-title" id="f-title">Inspection Form</div>
+        <button class="nav-right">💾</button>
+      </div>
+      <div class="form-progress">
+        <div class="prog-row">
+          <div class="prog-lbl">Checklist Progress</div>
+          <div class="prog-count" id="prog-count">0 / 14</div>
+        </div>
+        <div class="prog-bar-bg"><div class="prog-bar-fill" id="prog-fill" style="width:0%"></div></div>
+      </div>
+      <div class="scroll" id="f-scroll">
+        <div class="insp-card">
+          <div class="insp-label">Inspector Name *</div>
+          <input class="insp-input" id="insp-name" type="text" placeholder="Enter your name">
+        </div>
+        <div id="checklist-wrap"></div>
+        <div style="height:72px"></div>
+      </div>
+      <div class="sticky-bot">
+        <button class="btn btn-success btn-full btn-lg" onclick="saveForm()">✓ Complete Inspection</button>
+      </div>
+    </div>
+
+    <!-- ══ S4: REPORT ══ -->
+    <div class="screen off-right hidden" id="s-report">
+      <div class="nav-bar" id="r-nav" style="background:transparent;border:none;position:absolute;z-index:10;width:100%">
+        <button class="nav-back" style="background:rgba(255,255,255,.2)" onclick="back()"><span style="color:#fff">‹</span></button>
+        <div class="nav-title" style="color:#fff">Inspection Report</div>
+        <button class="nav-right" style="background:rgba(255,255,255,.2)"><span style="color:#fff">⬆</span></button>
+      </div>
+      <div class="scroll" id="r-scroll" style="padding:0">
+        <div id="r-hero"></div>
+        <div style="padding:14px">
+          <div id="r-score"></div>
+          <div id="r-cats"></div>
+          <div style="display:flex;gap:9px;margin-top:4px;margin-bottom:14px">
+            <button class="btn btn-outline" style="flex:1;font-size:13px">📄 Export PDF</button>
+            <button class="btn btn-outline" style="flex:1;font-size:13px">↗ Share</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ S5: SCAN ══ -->
+    <div class="screen off-right hidden scan-screen" id="s-scan">
+      <div style="padding:56px 16px 10px;display:flex;align-items:center;gap:10px">
+        <button class="nav-back" style="background:rgba(255,255,255,.15)" onclick="back()"><span style="color:#fff">✕</span></button>
+        <div class="nav-title" style="color:#fff">Scan QR / Barcode</div>
+      </div>
+      <div class="scan-area">
+        <div class="scan-bg"></div>
+        <div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.04) 0,rgba(0,0,0,.04) 1px,transparent 1px,transparent 2px);z-index:5"></div>
+        <div style="position:relative;z-index:10;display:flex;flex-direction:column;align-items:center">
+          <div class="scan-frame">
+            <div class="scan-corner sc-tl"></div>
+            <div class="scan-corner sc-tr"></div>
+            <div class="scan-corner sc-bl"></div>
+            <div class="scan-corner sc-br"></div>
+            <div class="scan-line"></div>
+          </div>
+          <div class="scan-hint">Point camera at container barcode or QR code</div>
+        </div>
+      </div>
+      <div style="padding:14px;background:rgba(0,0,0,.75)">
+        <button class="btn btn-full" style="color:#38bdf8;border:1.5px solid #38bdf8;border-radius:14px;height:48px;font-size:14px;background:transparent" onclick="openSheet()">
+          ⌨ Enter Container ID Manually
+        </button>
+      </div>
+    </div>
+
+    <!-- Sheet overlay -->
+    <div class="sheet-overlay" id="sheet" onclick="if(event.target===this)closeSheet()">
+      <div class="sheet" onclick="event.stopPropagation()">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">Enter Container ID</div>
+        <div class="sheet-body">
+          <input class="sheet-input" id="sheet-input" type="text" placeholder="EIRU1234567" maxlength="11" oninput="this.value=this.value.toUpperCase()">
+          <div class="sheet-hint">Format: 4 letters + 7 digits (e.g. EIRU1234567)</div>
+        </div>
+        <div class="sheet-btns">
+          <button class="btn btn-outline" style="flex:1" onclick="closeSheet()">Cancel</button>
+          <button class="btn btn-primary" style="flex:1" onclick="searchSheet()">Search</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /app -->
+</div><!-- /phone -->
+
+<!-- ══════════════════════════ LABELS ══════════════════════════ -->
+<div class="label-panel">
+  <div style="font-size:20px;font-weight:800;color:#fff;margin-bottom:4px">Container Inspection</div>
+  <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:24px">Mobile Prototype · NPM Module</div>
+
+  <div class="label-section">
+    <div class="label-section-title">Screens</div>
+    <div class="label-item"><div class="label-num" id="ln1">1</div><div class="label-text"><strong>Container List</strong> — Search, filter by status, stats strip</div></div>
+    <div class="label-arrow">↓ tap a container</div>
+    <div class="label-item"><div class="label-num" id="ln2">2</div><div class="label-text"><strong>Container Detail</strong> — Diagram, info, action button</div></div>
+    <div class="label-arrow">↓ start inspection</div>
+    <div class="label-item"><div class="label-num" id="ln3">3</div><div class="label-text"><strong>Inspection Form</strong> — Pass/Fail per item, notes for failures</div></div>
+    <div class="label-arrow">↓ complete</div>
+    <div class="label-item"><div class="label-num" id="ln4">4</div><div class="label-text"><strong>Inspection Report</strong> — Score summary, category breakdown</div></div>
+  </div>
+
+  <div class="label-section">
+    <div class="label-section-title">Quick Navigate</div>
+    <div style="display:flex;flex-direction:column;gap:7px">
+      <button onclick="jumpTo('s-list')"  style="width:100%;text-align:left;padding:8px 13px;border-radius:9px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);color:#e2e8f0;font-size:13px;cursor:pointer">① Container List</button>
+      <button onclick="jumpTo('s-detail','OOLU3456789')" style="width:100%;text-align:left;padding:8px 13px;border-radius:9px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);color:#e2e8f0;font-size:13px;cursor:pointer">② Detail (has issues)</button>
+      <button onclick="jumpTo('s-form','MSCU2345678')" style="width:100%;text-align:left;padding:8px 13px;border-radius:9px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);color:#e2e8f0;font-size:13px;cursor:pointer">③ Inspection Form</button>
+      <button onclick="jumpTo('s-report','OOLU3456789')" style="width:100%;text-align:left;padding:8px 13px;border-radius:9px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);color:#e2e8f0;font-size:13px;cursor:pointer">④ Report (with issues)</button>
+      <button onclick="jumpTo('s-report','EIRU1234567')" style="width:100%;text-align:left;padding:8px 13px;border-radius:9px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);color:#e2e8f0;font-size:13px;cursor:pointer">④ Report (all pass)</button>
+      <button onclick="jumpTo('s-scan')" style="width:100%;text-align:left;padding:8px 13px;border-radius:9px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);color:#e2e8f0;font-size:13px;cursor:pointer">⑤ QR / Barcode Scan</button>
+    </div>
+  </div>
+
+  <div class="label-section">
+    <div class="label-section-title">UX Notes</div>
+    <div style="font-size:12px;color:rgba(255,255,255,.55);line-height:1.7">
+      • Pass/Fail toggle per checklist item<br>
+      • Note input appears only on Fail<br>
+      • Category sections collapsible<br>
+      • Diagram dots: green/amber/red status<br>
+      • Sticky progress bar on form screen<br>
+      • Report color: green = pass, red = issues
+    </div>
+  </div>
+
+  <div class="nav-dots" id="nav-dots"></div>
+</div>
+
+<script>
+// ── Data ──
+const CONTAINERS = [
+  {id:'EIRU1234567', shipId:'SP-001', vessel:'MV EVER GIVEN',  size:40, type:'DC'},
+  {id:'CSQU7654321', shipId:'SP-001', vessel:'MV EVER GIVEN',  size:20, type:'RF'},
+  {id:'OOLU3456789', shipId:'SP-002', vessel:'MV PACIFIC ACE', size:40, type:'HC'},
+  {id:'MSCU2345678', shipId:'SP-002', vessel:'MV PACIFIC ACE', size:20, type:'DC'},
+  {id:'HLXU8901234', shipId:'SP-003', vessel:'MV SEASPAN',     size:40, type:'OT'},
+  {id:'TEMU5678901', shipId:'SP-003', vessel:'MV SEASPAN',     size:20, type:'DC'},
+  {id:'CAIU9012345', shipId:'SP-004', vessel:'MV OCEAN STAR',  size:40, type:'DC'},
+  {id:'GESU3210987', shipId:'SP-004', vessel:'MV OCEAN STAR',  size:20, type:'HC'},
+];
+
+const CHECKLIST = [
+  {id:'CHK01', label:'Roof',                category:'Exterior'},
+  {id:'CHK02', label:'Side Panels (Left)',  category:'Exterior'},
+  {id:'CHK03', label:'Side Panels (Right)', category:'Exterior'},
+  {id:'CHK04', label:'Front Wall',          category:'Exterior'},
+  {id:'CHK05', label:'Door End',            category:'Exterior'},
+  {id:'CHK06', label:'Understructure',      category:'Exterior'},
+  {id:'CHK07', label:'Floor',               category:'Interior'},
+  {id:'CHK08', label:'Walls',               category:'Interior'},
+  {id:'CHK09', label:'Ceiling',             category:'Interior'},
+  {id:'CHK10', label:'Cleanliness',         category:'Interior'},
+  {id:'CHK11', label:'Hinges & Gaskets',    category:'Door'},
+  {id:'CHK12', label:'Locking Mechanism',   category:'Door'},
+  {id:'CHK13', label:'CSC Plate',           category:'Markings'},
+  {id:'CHK14', label:'Container Number',    category:'Markings'},
+];
+
+const CAT_ICONS = {Exterior:'🏗',Interior:'📐',Door:'🚪',Markings:'🏷'};
+
+let INSPECTIONS = {
+  'EIRU1234567':{inspector:'Anon T.',  date:'2026-02-16 07:30', pass:true,  issues:0,
+    items: CHECKLIST.map(c=>({...c,ok:true,note:''}))},
+  'CSQU7654321':{inspector:'Anon T.',  date:'2026-02-16 10:00', pass:true,  issues:0,
+    items: CHECKLIST.map(c=>({...c,ok:true,note:''}))},
+  'OOLU3456789':{inspector:'Boon S.', date:'2026-02-16 13:30', pass:false, issues:1,
+    items: CHECKLIST.map((c,i)=>({...c,ok:i!==5,note:i===5?'Minor rust on underframe':''}))},
+};
+
+// ── State ──
+let stack = ['s-list'];
+let curContainer = null;
+let formState = {};
+const SCREENS = ['s-list','s-detail','s-form','s-report','s-scan'];
+
+// ── Navigation ──
+function push(id) {
+  const cur = stack[stack.length-1];
+  if (cur === id) return;
+  const curEl = document.getElementById(cur);
+  const nextEl = document.getElementById(id);
+  nextEl.classList.remove('hidden','off-right','off-left');
+  nextEl.classList.add('off-right');
+  nextEl.style.transition = 'none';
+  nextEl.offsetHeight;
+  nextEl.style.transition = '';
+  curEl.classList.add('off-left');
+  nextEl.classList.remove('off-right');
+  setTimeout(()=>{
+    curEl.classList.add('hidden');
+    curEl.classList.remove('off-left');
+    stack.push(id);
+    updateNavDots();
+  }, 310);
+}
+
+function back() {
+  if (stack.length<=1) return;
+  const cur = stack[stack.length-1];
+  const prev = stack[stack.length-2];
+  const curEl = document.getElementById(cur);
+  const prevEl = document.getElementById(prev);
+  prevEl.classList.remove('hidden','off-left');
+  curEl.style.transition = 'transform .28s cubic-bezier(.4,0,.2,1)';
+  curEl.style.transform = 'translateX(100%)';
+  setTimeout(()=>{
+    curEl.classList.add('hidden','off-right');
+    curEl.style.transform = '';
+    curEl.style.transition = '';
+    stack.pop();
+    updateNavDots();
+  }, 280);
+}
+
+function jumpTo(screenId, containerId) {
+  // Reset to list first
+  SCREENS.forEach(s=>{
+    const el = document.getElementById(s);
+    el.classList.add('hidden','off-right');
+    el.classList.remove('off-left');
+  });
+  document.getElementById('s-list').classList.remove('hidden','off-right');
+  stack = ['s-list'];
+
+  if (screenId === 's-list') { updateNavDots(); return; }
+  if (containerId) curContainer = CONTAINERS.find(c=>c.id===containerId);
+
+  if (screenId==='s-detail' && containerId) { loadDetail(containerId); push('s-detail'); }
+  else if (screenId==='s-form' && containerId) { loadDetail(containerId); loadForm(containerId); push('s-detail'); setTimeout(()=>push('s-form'),30); }
+  else if (screenId==='s-report' && containerId) { loadDetail(containerId); loadReport(containerId); push('s-detail'); setTimeout(()=>push('s-report'),30); }
+  else if (screenId==='s-scan') push('s-scan');
+}
+
+function updateNavDots() {
+  const cur = stack[stack.length-1];
+  const idx = SCREENS.indexOf(cur);
+  const wrap = document.getElementById('nav-dots');
+  wrap.innerHTML = SCREENS.map((s,i)=>
+    `<div class="nav-dot ${i===idx?'active':''}" onclick="jumpTo('${s}')"></div>`
+  ).join('');
+  // highlight label
+  [1,2,3,4].forEach(n=>{
+    const el=document.getElementById('ln'+n);
+    if(el) el.style.background=(idx===n-1)?'#38bdf8':'var(--primary)';
+  });
+}
+
+// ── Screen 1 ──
+function renderList(filter) {
+  filter = filter || 'all';
+  const insp_done  = CONTAINERS.filter(c=> INSPECTIONS[c.id] &&  INSPECTIONS[c.id].pass).length;
+  const insp_issue = CONTAINERS.filter(c=> INSPECTIONS[c.id] && !INSPECTIONS[c.id].pass).length;
+  const pending    = CONTAINERS.filter(c=>!INSPECTIONS[c.id]).length;
+
+  document.getElementById('stats-strip').innerHTML = `
+    <div class="stat-cell"><div class="stat-num blue">${CONTAINERS.length}</div><div class="stat-lbl">Total</div></div>
+    <div class="stat-cell"><div class="stat-num green">${insp_done}</div><div class="stat-lbl">Passed</div></div>
+    <div class="stat-cell"><div class="stat-num">${pending}</div><div class="stat-lbl">Pending</div></div>
+    <div class="stat-cell"><div class="stat-num red">${insp_issue}</div><div class="stat-lbl">Issues</div></div>
+  `;
+
+  const chips = [
+    {k:'all',    l:`All (${CONTAINERS.length})`},
+    {k:'pending',l:`⏳ Pending (${pending})`},
+    {k:'done',   l:`✅ Passed (${insp_done})`},
+    {k:'issues', l:`⚠️ Issues (${insp_issue})`},
+  ];
+  document.getElementById('chips-row').innerHTML = chips.map(c=>
+    `<div class="chip${c.k===filter?' active':''}" onclick="filterList(this,'${c.k}')">${c.l}</div>`
+  ).join('');
+
+  let items = CONTAINERS;
+  if (filter==='pending') items = items.filter(c=>!INSPECTIONS[c.id]);
+  if (filter==='done')    items = items.filter(c=> INSPECTIONS[c.id] && INSPECTIONS[c.id].pass);
+  if (filter==='issues')  items = items.filter(c=> INSPECTIONS[c.id] && !INSPECTIONS[c.id].pass);
+
+  document.getElementById('list-scroll').innerHTML = items.length ? items.map(c=>{
+    const insp = INSPECTIONS[c.id];
+    const state = !insp?'pending': insp.pass?'done':'issues';
+    const icon  = state==='pending'?'📦': state==='done'?'✅':'⚠️';
+    const badge = state==='pending'
+      ? '<span class="badge badge-pending">⏳ Pending</span>'
+      : state==='done'
+      ? '<span class="badge badge-done">✅ Passed</span>'
+      : '<span class="badge badge-issues">⚠️ Issues</span>';
+    const sub = insp
+      ? `${insp.inspector} · ${insp.date.slice(0,10)}`
+      : `${c.vessel} · ${c.shipId}`;
+    return `
+      <div class="cont-card ${state}" onclick="openDetail('${c.id}')">
+        <div class="cont-icon ${state}">${icon}</div>
+        <div class="cont-info">
+          <div class="cont-id">${c.id}</div>
+          <div class="cont-sub">${sub}</div>
+        </div>
+        <div class="cont-right">
+          <div class="cont-size">${c.size}' ${c.type}</div>
+          ${badge}
+        </div>
+      </div>
+    `;
+  }).join('') : `<div style="text-align:center;padding:50px 0;color:var(--gray-400)"><div style="font-size:38px;margin-bottom:8px">📭</div>No containers</div>`;
+}
+
+function filterList(el, f) {
+  renderList(f);
+}
+
+// ── Screen 2 ──
+function loadDetail(id) {
+  curContainer = CONTAINERS.find(c=>c.id===id);
+  const insp = INSPECTIONS[id];
+  document.getElementById('d-nav-title').textContent = id.slice(0,4)+'···'+id.slice(-4);
+
+  const stateLabel = !insp ? '⏳ Pending' : insp.pass ? '✅ Inspected' : '⚠️ Issues';
+  const chipColor  = !insp ? '' : insp.pass
+    ? 'background:#dcfce7;color:#166534;border-color:transparent'
+    : 'background:#fee2e2;color:#991b1b;border-color:transparent';
+
+  document.getElementById('d-hero').innerHTML = `
+    <div class="detail-hero">
+      <div class="detail-id">${id}</div>
+      <div class="detail-vessel">${curContainer.vessel} · ${curContainer.shipId}</div>
+      <div class="detail-chips">
+        <div class="d-chip">${curContainer.size}' ${curContainer.type}</div>
+        <div class="d-chip" style="${chipColor}">${stateLabel}</div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('d-info').innerHTML = `
+    <div class="info-row"><div class="info-lbl">Container ID</div><div class="info-val mono">${id}</div></div>
+    <div class="info-row"><div class="info-lbl">Shipment</div><div class="info-val mono">${curContainer.shipId}</div></div>
+    <div class="info-row"><div class="info-lbl">Vessel</div><div class="info-val">${curContainer.vessel}</div></div>
+    <div class="info-row"><div class="info-lbl">Size / Type</div><div class="info-val">${curContainer.size}' ${curContainer.type}</div></div>
+    <div class="info-row"><div class="info-lbl">Status</div><div class="info-val">${stateLabel}</div></div>
+    ${insp ? `
+    <div class="info-row"><div class="info-lbl">Inspector</div><div class="info-val">${insp.inspector}</div></div>
+    <div class="info-row"><div class="info-lbl">Date</div><div class="info-val">${insp.date}</div></div>
+    ` : ''}
+  `;
+
+  // Diagram dots — show issue on understructure if OOLU
+  if (id==='OOLU3456789') {
+    document.getElementById('dot-under').setAttribute('fill','#f87171');
+  } else {
+    ['dot-roof','dot-side','dot-under','dot-door','dot-top'].forEach(d=>{
+      const el=document.getElementById(d);
+      if(el) el.setAttribute('fill','#34d399');
+    });
+  }
+
+  const btn = document.getElementById('d-action-btn');
+  if (insp) {
+    btn.textContent = '📄 View Inspection Report';
+    btn.className = 'btn btn-outline btn-full btn-lg';
+    btn.onclick = ()=>{ loadReport(id); push('s-report'); };
+  } else {
+    btn.textContent = '🔍 Start Inspection';
+    btn.className = 'btn btn-primary btn-full btn-lg';
+    btn.onclick = ()=>{ loadForm(id); push('s-form'); };
+  }
+}
+
+function openDetail(id) {
+  loadDetail(id);
+  push('s-detail');
+}
+
+// ── Screen 3 ──
+function loadForm(id) {
+  curContainer = CONTAINERS.find(c=>c.id===id) || curContainer;
+  document.getElementById('f-title').textContent = (curContainer?.id||id).slice(0,8)+'···';
+  document.getElementById('insp-name').value = '';
+  formState = {};
+  CHECKLIST.forEach(c=>{ formState[c.id]={ok:true,note:''}; });
+  renderChecklist();
+  updateProg();
+}
+
+function renderChecklist() {
+  const cats = ['Exterior','Interior','Door','Markings'];
+  document.getElementById('checklist-wrap').innerHTML = cats.map(cat=>{
+    const items = CHECKLIST.filter(c=>c.category===cat);
+    const fails = items.filter(i=>!formState[i.id]?.ok).length;
+    return `
+      <div class="cat-section">
+        <div class="cat-hdr${fails?' has-items':''}" id="ch-${cat}" onclick="toggleCat('${cat}')">
+          <span class="cat-icon">${CAT_ICONS[cat]}</span>
+          <span class="cat-name">${cat}</span>
+          <span class="cat-count">${fails?`<span style="color:#fca5a5">${fails} issue(s)</span>`:items.length+' items'}</span>
+          <span class="cat-chevron">▼</span>
+        </div>
+        <div class="cat-items" id="ci-${cat}">
+          ${items.map(item=>{
+            const st = formState[item.id];
+            return `
+              <div>
+                <div class="chk-item">
+                  <div class="chk-label${!st.ok?' fail':''}" id="cl-${item.id}">${item.label}</div>
+                  <div class="pf">
+                    <button class="pf-btn pass${st.ok?' on':''}" onclick="setItem('${item.id}',true)">✓</button>
+                    <button class="pf-btn fail${!st.ok?' on':''}" onclick="setItem('${item.id}',false)">✗</button>
+                  </div>
+                </div>
+                <div class="note-row${!st.ok?' show':''}" id="nr-${item.id}">
+                  <span style="font-size:13px">📝</span>
+                  <input type="text" placeholder="Describe the issue..." value="${st.note}" onchange="formState['${item.id}'].note=this.value">
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function setItem(id, ok) {
+  formState[id].ok = ok;
+  if(ok) formState[id].note='';
+  const passBtn = document.querySelector(`[onclick="setItem('${id}',true)"]`);
+  const failBtn = document.querySelector(`[onclick="setItem('${id}',false)"]`);
+  const label   = document.getElementById('cl-'+id);
+  const noteRow = document.getElementById('nr-'+id);
+  if(passBtn){ passBtn.classList.toggle('on',ok); }
+  if(failBtn){ failBtn.classList.toggle('on',!ok); }
+  if(label)  { label.classList.toggle('fail',!ok); }
+  if(noteRow){ noteRow.classList.toggle('show',!ok); }
+  updateProg();
+  // update cat header
+  const item = CHECKLIST.find(c=>c.id===id);
+  if(item){
+    const catItems = CHECKLIST.filter(c=>c.category===item.category);
+    const fails = catItems.filter(i=>!formState[i.id]?.ok).length;
+    const hdr = document.getElementById('ch-'+item.category);
+    if(hdr){
+      hdr.classList.toggle('has-items', fails>0);
+      const ce = hdr.querySelector('.cat-count');
+      if(ce) ce.innerHTML = fails>0?`<span style="color:#fca5a5">${fails} issue(s)</span>`:catItems.length+' items';
+    }
+  }
+}
+
+function toggleCat(cat) {
+  const hdr  = document.getElementById('ch-'+cat);
+  const body = document.getElementById('ci-'+cat);
+  const collapsed = body.classList.toggle('collapsed');
+  hdr.classList.toggle('collapsed', collapsed);
+}
+
+function updateProg() {
+  const total = CHECKLIST.length;
+  document.getElementById('prog-count').textContent = `${total} / ${total}`;
+  document.getElementById('prog-fill').style.width = '100%';
+}
+
+function saveForm() {
+  const name = document.getElementById('insp-name').value.trim();
+  if(!name){
+    document.getElementById('insp-name').style.borderColor='var(--danger)';
+    document.getElementById('insp-name').focus();
+    return;
+  }
+  const items = CHECKLIST.map(c=>({...c,ok:formState[c.id].ok,note:formState[c.id].note}));
+  const fails = items.filter(i=>!i.ok).length;
+  const id = curContainer.id;
+  INSPECTIONS[id] = {
+    inspector:name,
+    date:new Date().toISOString().slice(0,16).replace('T',' '),
+    pass:fails===0, issues:fails, items,
+  };
+  renderList();
+  loadReport(id);
+  push('s-report');
+}
+
+// ── Screen 4 ──
+function loadReport(id) {
+  const c    = CONTAINERS.find(x=>x.id===id);
+  const insp = INSPECTIONS[id];
+  if(!insp) return;
+  const allItems = insp.items || CHECKLIST.map(ch=>({...ch,ok:true,note:''}));
+  const cats = ['Exterior','Interior','Door','Markings'];
+  const passed = allItems.filter(i=>i.ok).length;
+  const failed = allItems.filter(i=>!i.ok).length;
+  const heroClass = insp.pass?'pass':'fail';
+  const heroLabel = insp.pass?'✅ PASS — All Clear':'⚠️ ISSUES FOUND';
+
+  document.getElementById('r-hero').innerHTML = `
+    <div class="report-hero ${heroClass}">
+      <div class="result-badge">${heroLabel}</div>
+      <div class="report-cont-id">${id}</div>
+      <div class="report-sub">${c?c.vessel:''} · ${c?c.shipId:''}</div>
+      <div class="report-sub" style="margin-top:3px">Inspector: ${insp.inspector} · ${insp.date}</div>
+    </div>
+  `;
+
+  document.getElementById('r-score').innerHTML = `
+    <div class="score-row" style="margin-bottom:10px">
+      <div class="score-cell"><div class="score-num blue">${allItems.length}</div><div class="score-lbl">Total</div></div>
+      <div class="score-cell"><div class="score-num green">${passed}</div><div class="score-lbl">Passed</div></div>
+      <div class="score-cell"><div class="score-num red">${failed}</div><div class="score-lbl">Issues</div></div>
+    </div>
+  `;
+
+  document.getElementById('r-cats').innerHTML = cats.map(cat=>{
+    const catItems = allItems.filter(i=>i.category===cat);
+    const catFail  = catItems.filter(i=>!i.ok).length;
+    return `
+      <div class="cat-result">
+        <div class="cat-result-hdr">
+          <span style="font-size:16px">${CAT_ICONS[cat]}</span>
+          <span class="cat-result-name">${cat}</span>
+          <span class="cat-result-count">${catItems.length-catFail}/${catItems.length} OK</span>
+          <div class="cat-status ${catFail?'cat-err':'cat-ok'}">${catFail?'!':'✓'}</div>
+        </div>
+        ${catItems.map(item=>`
+          <div class="report-item">
+            <div class="r-dot ${item.ok?'dot-ok':'dot-err'}"></div>
+            <div class="r-name">${item.label}</div>
+            ${item.note?`<div class="r-note">${item.note}</div>`:''}
+            <span class="r-tick ${item.ok?'ok':'err'}">${item.ok?'✓':'✗'}</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }).join('');
+}
+
+// ── Scan / Sheet ──
+function gotoScan() { push('s-scan'); }
+function openSheet() {
+  document.getElementById('sheet').classList.add('open');
+  setTimeout(()=>document.getElementById('sheet-input').focus(),200);
+}
+function closeSheet() {
+  document.getElementById('sheet').classList.remove('open');
+  document.getElementById('sheet-input').value='';
+}
+function searchSheet() {
+  const id = document.getElementById('sheet-input').value.trim().toUpperCase();
+  closeSheet();
+  back();
+  setTimeout(()=>{
+    const found = CONTAINERS.find(c=>c.id===id);
+    if(found) openDetail(id);
+  },350);
+}
+
+// ── Init ──
+renderList();
+updateNavDots();
+updateProg();
+</script>
+</body>
+</html>

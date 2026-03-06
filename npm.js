@@ -1,5 +1,13 @@
 // ========== NPM MODULE ==========
 
+let eirCoCounter = 4;  // next: CO20264
+let eirCiCounter = 2;  // next: CI20262
+
+function getActiveEir(eirArray) {
+    if (!eirArray || eirArray.length === 0) return null;
+    return [...eirArray].reverse().find(e => e.status !== 'cancelled') || null;
+}
+
 const NPM = {
     currentView: 'npm-shipment-list',
     statusFilter: 'all',
@@ -50,7 +58,7 @@ const NPM = {
                     <table>
                         <thead><tr>
                             <th>${t('shipmentId')}</th><th>${t('status')}</th><th>${t('vessel')}</th><th>${t('voyageNo')}</th>
-                            <th>${t('etd')}</th><th>${t('bookings')}</th><th>${t('containers')}</th><th>${t('site')}</th><th>${t('actions')}</th>
+                            <th>${t('etd')}</th><th>${t('bookings')}</th><th>${t('containers')}</th><th>${t('actions')}</th>
                         </tr></thead>
                         <tbody>
                             ${filtered.map(s => `
@@ -62,7 +70,6 @@ const NPM = {
                                     <td>${formatDateTime(s.etd)}</td>
                                     <td>${s.bookings.length}</td>
                                     <td>${s.containers.length}</td>
-                                    <td><span class="site-badge">${s.site}</span></td>
                                     <td><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();NPM.showDetail('${s.id}')">${t('view')}</button></td>
                                 </tr>
                             `).join('')}
@@ -94,10 +101,6 @@ const NPM = {
                         <label>${t('etd')} <span class="req">*</span></label>
                         <input id="nf-etd" type="datetime-local" value="${new Date(Date.now() + 3*86400000).toISOString().slice(0,16)}">
                     </div>
-                    <div class="form-group">
-                        <label>${t('site')} <span class="req">*</span></label>
-                        <select id="nf-site">${MASTERS.sites.map(s => `<option>${s}</option>`).join('')}</select>
-                    </div>
                 </div>
                 <div class="section-title">${t('bookings')}</div>
                 <div id="nf-bookings">
@@ -116,6 +119,7 @@ const NPM = {
         return `<div class="form-grid" style="margin-bottom:12px;padding:12px;background:var(--gray-50);border-radius:6px">
             <div class="form-group"><label>${t('shipper')}</label><input class="nf-shipper" type="text"></div>
             <div class="form-group"><label>${t('bookingNo')}</label><input class="nf-bookingno" type="text" placeholder="BKG-2026-XXXX"></div>
+            <div class="form-group"><label>${t('fw')}</label><input class="nf-fw" type="text" placeholder="e.g. FW001"></div>
             <div class="form-group"><label>${t('cargo')}</label><select class="nf-cargo">${MASTERS.commodities.map(c => `<option>${c}</option>`).join('')}</select></div>
             <div class="form-group"><label>${t('line')}</label><select class="nf-line">${MASTERS.containerLines.map(l => `<option>${l.name}</option>`).join('')}</select></div>
             <div class="form-group"><label>${t('size')}</label><select class="nf-size">${MASTERS.containerSizes.map(s => `<option>${s}</option>`).join('')}</select></div>
@@ -139,6 +143,7 @@ const NPM = {
 
         const shippers = document.querySelectorAll('.nf-shipper');
         const bookingNos = document.querySelectorAll('.nf-bookingno');
+        const fws = document.querySelectorAll('.nf-fw');
         const cargos = document.querySelectorAll('.nf-cargo');
         const lines = document.querySelectorAll('.nf-line');
         const sizes = document.querySelectorAll('.nf-size');
@@ -152,7 +157,8 @@ const NPM = {
                 bookings.push({
                     id: `BK${String(Date.now()).slice(-4)}${i}`,
                     shipper: shippers[i].value.trim(),
-                    fw: '', fwRef: '',
+                    fw: fws[i].value.trim(),
+                    fwRef: '',
                     bookingNo: bookingNos[i].value.trim() || `BKG-2026-${String(Math.random()).slice(2,6)}`,
                     cargo: cargos[i].value,
                     line: lines[i].value,
@@ -167,16 +173,14 @@ const NPM = {
         }
 
         const num = npmShipments.length + 1;
-        const site = document.getElementById('nf-site').value;
-        const comPlant = site === 'BKK' ? '1201' : '1202';
+        const yy = new Date().getFullYear().toString().slice(-2);
         const shipment = {
-            id: `ML-${comPlant}.26.${String(num).padStart(6, '0')}`,
+            id: `12${yy}${String(num).padStart(6, '0')}`,
             status: 'open',
             vesselName: vessel,
             voyNo: voy,
             etd: document.getElementById('nf-etd').value,
             wbs: `08S.26CF.NPSRT1.S${String(num).padStart(3, '0')}`,
-            site: site,
             bookings: bookings,
             containers: [],
         };
@@ -229,8 +233,9 @@ const NPM = {
 
     confirmUpload() {
         const num = npmShipments.length + 1;
+        const yy = new Date().getFullYear().toString().slice(-2);
         npmShipments.unshift({
-            id: `ML-1201.26.${String(num).padStart(6, '0')}`,
+            id: `12${yy}${String(num).padStart(6, '0')}`,
             status: 'open',
             vesselName: 'ONE HARMONY',
             voyNo: '26005N',
@@ -293,7 +298,6 @@ const NPM = {
                         <div class="info-item"><label>${t('voyageNo')}</label><div class="value">${s.voyNo}</div></div>
                         <div class="info-item"><label>${t('etd')}</label><div class="value">${formatDateTime(s.etd)}</div></div>
                         <div class="info-item"><label>${t('wbs')}</label><div class="value" style="font-family:monospace">${s.wbs}</div></div>
-                        <div class="info-item"><label>${t('site')}</label><div class="value"><span class="site-badge">${s.site}</span></div></div>
                     </div>
                 </div>
             </div>
@@ -312,7 +316,7 @@ const NPM = {
                     </div>
                     <div class="table-wrap">
                         <table>
-                            <thead><tr><th>${t('shipper')}</th><th>${t('bookingNo')}</th><th>${t('cargo')}</th><th>${t('line')}</th><th>${t('sts')}</th><th>${t('size')}</th><th>${t('qty')}</th><th>${t('stuffing')}</th><th>${t('marking')}</th><th>${t('srNo')}</th><th>${t('docType')}</th>${canEdit ? `<th>${t('actions')}</th>` : ''}</tr></thead>
+                            <thead><tr><th>${t('shipper')}</th><th>${t('bookingNo')}</th><th>${t('cargo')}</th><th>${t('line')}</th><th>${t('sts')}</th><th>${t('fw')}</th><th>${t('size')}</th><th>${t('qty')}</th><th>${t('stuffing')}</th><th>${t('marking')}</th><th>${t('srNo')}</th><th>${t('docType')}</th>${canEdit ? `<th>${t('actions')}</th>` : ''}</tr></thead>
                             <tbody>
                                 ${s.bookings.map(b => `
                                     <tr>
@@ -320,7 +324,8 @@ const NPM = {
                                         <td><strong>${b.bookingNo}</strong></td>
                                         <td>${b.cargo}</td>
                                         <td>${b.line}</td>
-                                        <td><span class="badge ${b.sts === 'E' ? 'badge-open' : 'badge-dispatch'}">${b.sts === 'E' ? t('export') : t('import')}</span></td>
+                                        <td><span class="badge ${b.sts === 'E' ? 'badge-open' : 'badge-dispatch'}">${b.sts}</span></td>
+                                        <td>${b.fw || '-'}</td>
                                         <td>${b.size}'</td>
                                         <td>${b.qty}</td>
                                         <td>${b.stuffing}</td>
@@ -357,8 +362,8 @@ const NPM = {
                                         <td>${c.sealNo}</td>
                                         <td>${c.weight.toLocaleString()}</td>
                                         <td>${c.inspected ? `<span style="color:var(--success)">&#10003; ${t('yes')}</span>` : `<span style="color:var(--danger)">&#10007; ${t('no')}</span>`}</td>
-                                        <td>${c.eirOut ? '&#10003; ' + formatDateTime(c.eirOut.time) : '-'}</td>
-                                        <td>${c.eirIn ? '&#10003; ' + formatDateTime(c.eirIn.time) : '-'}</td>
+                                        <td>${getActiveEir(c.eirOuts) ? `<code>${getActiveEir(c.eirOuts).id}</code> ${formatDateTime(getActiveEir(c.eirOuts).time)}` : '-'}</td>
+                                        <td>${getActiveEir(c.eirIns) ? `<code>${getActiveEir(c.eirIns).id}</code> ${formatDateTime(getActiveEir(c.eirIns).time)}` : '-'}</td>
                                         <td>
                                             <button class="btn btn-outline btn-sm" onclick="NPM.showEditContainer('${s.id}','${c.id}')">${t('edit')}</button>
                                             ${isMismatch ? `<span style="color:var(--danger);font-size:11px;margin-left:4px">${t('containerMismatch')}</span>` : ''}
@@ -377,27 +382,45 @@ const NPM = {
                     <div class="card-header"><h3>${t('eir')}</h3></div>
                     <div class="table-wrap">
                         <table>
-                            <thead><tr><th>${t('containerId')}</th><th>${t('eirOut')}</th><th>${t('outTime')}</th><th>${t('outTruck')}</th><th>${t('driverLicense')}</th><th>${t('eirIn')}</th><th>${t('inTime')}</th><th>${t('inTruck')}</th><th>${t('actions')}</th></tr></thead>
+                            <thead><tr><th>${t('containerId')}</th><th>Direction</th><th>EIR ID</th><th>Date/Time</th><th>${t('status')}</th><th>Truck</th><th>${t('actions')}</th></tr></thead>
                             <tbody>
-                                ${s.containers.map(c => `
-                                    <tr>
-                                        <td><strong style="font-family:monospace">${c.id}</strong></td>
-                                        <td>${c.eirOut ? `<span class="badge ${c.eirOut.status === 'cancelled' ? 'badge-cancelled' : 'badge-completed'}">${c.eirOut.id}</span>` : '-'}</td>
-                                        <td>${c.eirOut && c.eirOut.status !== 'cancelled' ? formatDateTime(c.eirOut.time) : '-'}</td>
-                                        <td>${c.eirOut && c.eirOut.status !== 'cancelled' ? c.eirOut.truckNo : '-'}</td>
-                                        <td>${c.eirOut && c.eirOut.status !== 'cancelled' ? (c.eirOut.driverLicense || '-') : '-'}</td>
-                                        <td>${c.eirIn ? `<span class="badge ${c.eirIn.status === 'cancelled' ? 'badge-cancelled' : 'badge-completed'}">${c.eirIn.id}</span>` : '-'}</td>
-                                        <td>${c.eirIn && c.eirIn.status !== 'cancelled' ? formatDateTime(c.eirIn.time) : '-'}</td>
-                                        <td>${c.eirIn && c.eirIn.status !== 'cancelled' ? c.eirIn.truckNo : '-'}</td>
-                                        <td>
-                                            ${!c.eirOut || c.eirOut.status === 'cancelled' ? `<button class="btn btn-warning btn-sm" onclick="NPM.createEIR('${s.id}','${c.id}','out')">${t('eirOut')}</button>` : ''}
-                                            ${c.eirOut && c.eirOut.status !== 'cancelled' && (!c.eirIn || c.eirIn.status === 'cancelled') ? `<button class="btn btn-success btn-sm" onclick="NPM.createEIR('${s.id}','${c.id}','in')">${t('eirIn')}</button>` : ''}
-                                            ${c.eirOut && c.eirOut.status === 'completed' ? `<button class="btn btn-danger btn-sm" onclick="NPM.cancelEIR('${s.id}','${c.id}','out')">${t('cancelEirOut')}</button>` : ''}
-                                            ${c.eirIn && c.eirIn.status === 'completed' ? `<button class="btn btn-danger btn-sm" onclick="NPM.cancelEIR('${s.id}','${c.id}','in')">${t('cancelEirIn')}</button>` : ''}
-                                            ${(c.eirIn && c.eirIn.status !== 'cancelled') || (c.eirOut && c.eirOut.status !== 'cancelled') ? `<button class="btn btn-outline btn-sm" onclick="NPM.printEIR('${c.id}')">${t('print')}</button>` : ''}
-                                        </td>
-                                    </tr>
-                                `).join('')}
+                                ${s.containers.map(c => {
+                                    const activeOut = getActiveEir(c.eirOuts);
+                                    const activeIn = getActiveEir(c.eirIns);
+                                    const allEirs = [
+                                        ...(c.eirOuts || []).map(e => ({ ...e, direction: 'out' })),
+                                        ...(c.eirIns || []).map(e => ({ ...e, direction: 'in' }))
+                                    ];
+                                    if (allEirs.length === 0) {
+                                        return `<tr>
+                                            <td><strong style="font-family:monospace">${c.id}</strong></td>
+                                            <td colspan="5" style="color:var(--gray-400)">-</td>
+                                            <td><button class="btn btn-warning btn-sm" onclick="NPM.createEIR('${s.id}','${c.id}','out')">${t('eirOut')}</button></td>
+                                        </tr>`;
+                                    }
+                                    const rows = allEirs.map((eir, idx) => {
+                                        const isActive = eir.status !== 'cancelled';
+                                        return `<tr class="${isActive ? '' : 'eir-voided'}">
+                                            <td>${idx === 0 ? `<strong style="font-family:monospace">${c.id}</strong>` : ''}</td>
+                                            <td><span class="badge ${eir.direction === 'out' ? 'badge-dispatch' : 'badge-completed'}">${eir.direction.toUpperCase()}</span></td>
+                                            <td><code>${eir.id}</code></td>
+                                            <td>${formatDateTime(eir.time)}</td>
+                                            <td>${isActive ? '<span style="color:var(--success)">&#10003; Done</span>' : '<span class="badge badge-cancelled">&#8856; VOIDED</span>'}</td>
+                                            <td>${isActive ? (eir.truckNo || '-') : '-'}</td>
+                                            <td>
+                                                ${isActive ? `<button class="btn btn-danger btn-sm" onclick="NPM.showVoidModal('${s.id}','${c.id}','${eir.direction}')">Void</button>` : ''}
+                                                ${isActive ? `<button class="btn btn-outline btn-sm" onclick="NPM.printEIR('${c.id}')">${t('print')}</button>` : ''}
+                                            </td>
+                                        </tr>`;
+                                    }).join('');
+                                    let actionRow = '';
+                                    if (!activeOut) {
+                                        actionRow = `<tr><td></td><td colspan="5"></td><td><button class="btn btn-warning btn-sm" onclick="NPM.createEIR('${s.id}','${c.id}','out')">${t('eirOut')}</button></td></tr>`;
+                                    } else if (!activeIn) {
+                                        actionRow = `<tr><td></td><td colspan="5"></td><td><button class="btn btn-success btn-sm" onclick="NPM.createEIR('${s.id}','${c.id}','in')">${t('eirIn')}</button></td></tr>`;
+                                    }
+                                    return rows + actionRow;
+                                }).join('')}
                             </tbody>
                         </table>
                     </div>
@@ -696,7 +719,7 @@ const NPM = {
     confirmLoadingList(shipId) {
         const s = npmShipments.find(x => x.id === shipId);
         if (!s || !this._pendingContainers) return;
-        s.containers = this._pendingContainers.map(c => ({ ...c, inspected: false, eirIn: null, eirOut: null }));
+        s.containers = this._pendingContainers.map(c => ({ ...c, inspected: false, eirOuts: [], eirIns: [] }));
         this._pendingContainers = null;
         closeModal();
         showToast(t('containersLoaded', { count: s.containers.length }), 'success');
@@ -747,8 +770,10 @@ const NPM = {
 
         const booking = s.bookings.find(b => b.bookingNo === c.bookingNo);
         const dirLabel = direction === 'out' ? t('gateOut') : t('gateIn');
-        const eirNum = Math.floor(Math.random() * 9000) + 1000;
         const now = new Date();
+        const previewId = direction === 'out'
+            ? `CO${now.getFullYear()}${eirCoCounter}`
+            : `CI${now.getFullYear()}${eirCiCounter}`;
         const dateStr = now.toISOString().slice(0, 10);
         const timeStr = now.toISOString().slice(11, 16);
 
@@ -778,7 +803,7 @@ const NPM = {
                         </div>
                         <div class="form-group">
                             <label>${t('eirNo')}</label>
-                            <input type="text" disabled value="${eirNum}">
+                            <input type="text" disabled value="${previewId}">
                         </div>
                         <div class="form-group">
                             <label>${t('salesOrder')}</label>
@@ -965,10 +990,13 @@ const NPM = {
 
         const checkDate = document.getElementById('eir-checkdate').value;
         const checkTime = document.getElementById('eir-checktime').value;
-        const eirNum = Math.floor(Math.random() * 9000) + 1000;
+        const year = new Date().getFullYear();
+        const eirId = direction === 'out'
+            ? `CO${year}${eirCoCounter++}`
+            : `CI${year}${eirCiCounter++}`;
 
         const eir = {
-            id: `EIR-${direction.toUpperCase()}-${eirNum}`,
+            id: eirId,
             time: `${checkDate}T${checkTime}`,
             // Header
             event: document.getElementById('eir-event').value,
@@ -1004,8 +1032,13 @@ const NPM = {
             status: 'completed',
         };
 
-        if (direction === 'out') c.eirOut = eir;
-        else c.eirIn = eir;
+        if (direction === 'out') {
+            if (!c.eirOuts) c.eirOuts = [];
+            c.eirOuts.push(eir);
+        } else {
+            if (!c.eirIns) c.eirIns = [];
+            c.eirIns.push(eir);
+        }
 
         const dirLabel = direction === 'out' ? t('eirOut') : t('eirIn');
         closeModal();
@@ -1013,24 +1046,86 @@ const NPM = {
         this.showDetail(shipId);
     },
 
-    cancelEIR(shipId, containerId, direction) {
+    showVoidModal(shipId, containerId, direction, returnView = 'detail') {
+        const s = npmShipments.find(x => x.id === shipId);
+        if (!s) return;
+        const c = s.containers.find(x => x.id === containerId);
+        if (!c) return;
+        const activeEir = direction === 'out' ? getActiveEir(c.eirOuts) : getActiveEir(c.eirIns);
+        if (!activeEir) return;
+
+        openModal(`
+            <div class="modal-header">
+                <div>
+                    <h2 style="font-size:16px">Void EIR</h2>
+                    <div style="font-size:12px;color:var(--gray-500);margin-top:2px">Container: ${containerId} &bull; ${activeEir.id}</div>
+                </div>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 20px;margin-bottom:18px;background:var(--gray-50);border-radius:8px;padding:14px">
+                    <div><div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">Container ID</div><div style="font-family:monospace;font-weight:500">${containerId}</div></div>
+                    <div><div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">EIR ID</div><div style="font-family:monospace;font-weight:500">${activeEir.id}</div></div>
+                    <div><div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">Direction</div><div style="font-weight:500">${direction.toUpperCase()}</div></div>
+                    <div><div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">Date/Time</div><div style="font-weight:500">${formatDateTime(activeEir.time)}</div></div>
+                </div>
+                <div style="margin-bottom:14px">
+                    <label style="display:block;font-size:12px;font-weight:600;margin-bottom:5px">เหตุผลการยกเลิก <span style="color:var(--danger)">*</span></label>
+                    <select id="void-reason" style="width:100%;border:1px solid var(--gray-300);border-radius:6px;padding:8px 12px;font-size:13px;outline:none" onchange="NPM._checkVoidForm()">
+                        <option value="">-- เลือกเหตุผล --</option>
+                        <option value="data_entry_error">กรอกข้อมูลผิดพลาด</option>
+                        <option value="duplicate">ทำรายการซ้ำ</option>
+                        <option value="wrong_container">ผิด Container</option>
+                        <option value="customer_cancel">ลูกค้ายกเลิก</option>
+                        <option value="other">อื่นๆ (ระบุเพิ่มเติม)</option>
+                    </select>
+                </div>
+                <div style="margin-bottom:14px">
+                    <label style="display:block;font-size:12px;font-weight:600;margin-bottom:5px">หมายเหตุเพิ่มเติม</label>
+                    <textarea id="void-note" style="width:100%;border:1px solid var(--gray-300);border-radius:6px;padding:8px 12px;font-size:13px;resize:vertical;min-height:80px;outline:none" placeholder="ระบุรายละเอียดเพิ่มเติม..." onkeyup="NPM._checkVoidForm()"></textarea>
+                </div>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+                    <input type="checkbox" id="void-confirm-check" style="width:16px;height:16px;accent-color:var(--danger)" onchange="NPM._checkVoidForm()">
+                    ยืนยันว่าได้ตรวจสอบข้อมูลแล้ว และต้องการยกเลิก EIR นี้
+                </label>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal()">${t('cancel')}</button>
+                <button class="btn btn-danger" id="void-confirm-btn" disabled onclick="NPM.cancelEIR('${shipId}','${containerId}','${direction}','${returnView}')">ยืนยันยกเลิก EIR</button>
+            </div>
+        `);
+    },
+
+    _checkVoidForm() {
+        const reason = document.getElementById('void-reason').value;
+        const checked = document.getElementById('void-confirm-check').checked;
+        document.getElementById('void-confirm-btn').disabled = !(reason && checked);
+    },
+
+    cancelEIR(shipId, containerId, direction, returnView = 'detail') {
         const s = npmShipments.find(x => x.id === shipId);
         if (!s) return;
         const c = s.containers.find(x => x.id === containerId);
         if (!c) return;
 
-        if (direction === 'out' && c.eirOut) {
-            const eirId = c.eirOut.id;
-            c.eirOut.status = 'cancelled';
-            // Also cancel EIR In if it exists
-            if (c.eirIn) c.eirIn.status = 'cancelled';
-            showToast(t('eirCancelled', { id: eirId }), 'success');
-        } else if (direction === 'in' && c.eirIn) {
-            const eirId = c.eirIn.id;
-            c.eirIn.status = 'cancelled';
-            showToast(t('eirCancelled', { id: eirId }), 'success');
+        if (direction === 'out') {
+            const activeEir = getActiveEir(c.eirOuts);
+            if (activeEir) {
+                activeEir.status = 'cancelled';
+                const activeIn = getActiveEir(c.eirIns);
+                if (activeIn) activeIn.status = 'cancelled';
+                showToast(t('eirCancelled', { id: activeEir.id }), 'success');
+            }
+        } else if (direction === 'in') {
+            const activeEir = getActiveEir(c.eirIns);
+            if (activeEir) {
+                activeEir.status = 'cancelled';
+                showToast(t('eirCancelled', { id: activeEir.id }), 'success');
+            }
         }
-        this.showDetail(shipId);
+        closeModal();
+        if (returnView === 'list') this.renderEIRList();
+        else this.showDetail(shipId);
     },
 
     printEIR(containerId) {
@@ -1046,9 +1141,9 @@ const NPM = {
             });
         });
 
-        const activeEirOut = allContainers.filter(c => c.eirOut && c.eirOut.status !== 'cancelled');
-        const activeEirIn = allContainers.filter(c => c.eirIn && c.eirIn.status !== 'cancelled');
-        const pendingOut = allContainers.filter(c => !c.eirOut || c.eirOut.status === 'cancelled');
+        const activeEirOut = allContainers.filter(c => getActiveEir(c.eirOuts));
+        const activeEirIn = allContainers.filter(c => getActiveEir(c.eirIns));
+        const pendingOut = allContainers.filter(c => !getActiveEir(c.eirOuts));
 
         document.getElementById('npm-content').innerHTML = `
             <div class="page-header">
@@ -1064,11 +1159,9 @@ const NPM = {
             <div class="card" style="margin-bottom:20px">
                 <div class="card-header"><h3>${t('quickEirLookup')}</h3></div>
                 <div class="card-body">
-                    <div style="display:flex;gap:12px;align-items:end">
-                        <div class="form-group" style="flex:1">
-                            <label>${t('enterContainerOrShipment')}</label>
-                            <input id="eir-lookup" type="text" placeholder="e.g. EIRU1234567">
-                        </div>
+                    <div style="font-size:11px;color:var(--gray-500);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">${t('enterContainerOrShipment')}</div>
+                    <div style="display:flex;gap:10px">
+                        <input id="eir-lookup" type="text" placeholder="e.g. EIRU1234567" style="flex:1">
                         <button class="btn btn-primary" onclick="NPM.lookupEIR()">${t('search')}</button>
                     </div>
                     <div id="eir-lookup-result" style="margin-top:16px"></div>
@@ -1083,17 +1176,18 @@ const NPM = {
                         <tbody>
                             ${allContainers.map(c => `
                                 <tr>
-                                    <td><strong style="font-family:monospace">${c.id}</strong></td>
+                                    <td><span style="font-family:monospace;font-weight:600">${c.id}</span></td>
                                     <td>${c.shipmentId}</td>
                                     <td>${c.vesselName}</td>
                                     <td>${c.size}' ${c.type}</td>
-                                    <td>${c.inspected ? '<span style="color:var(--success)">&#10003;</span>' : '<span style="color:var(--danger)">&#10007;</span>'}</td>
-                                    <td>${c.eirOut && c.eirOut.status !== 'cancelled' ? formatDateTime(c.eirOut.time) : (c.eirOut && c.eirOut.status === 'cancelled' ? `<span style="color:var(--danger)">${t('cancelled')}</span>` : '-')}</td>
-                                    <td>${c.eirIn && c.eirIn.status !== 'cancelled' ? formatDateTime(c.eirIn.time) : (c.eirIn && c.eirIn.status === 'cancelled' ? `<span style="color:var(--danger)">${t('cancelled')}</span>` : '-')}</td>
+                                    <td>${c.inspected ? '<span style="color:var(--success);font-size:16px">&#10003;</span>' : '<span style="color:var(--danger);font-size:16px">&#10007;</span>'}</td>
+                                    <td>${getActiveEir(c.eirOuts) ? `<code>${getActiveEir(c.eirOuts).id}</code> ${formatDateTime(getActiveEir(c.eirOuts).time)}` : (c.eirOuts && c.eirOuts.some(e => e.status === 'cancelled') ? `<span style="color:var(--danger)">&#8856; VOIDED</span>` : '-')}</td>
+                                    <td>${getActiveEir(c.eirIns) ? `<code>${getActiveEir(c.eirIns).id}</code> ${formatDateTime(getActiveEir(c.eirIns).time)}` : (c.eirIns && c.eirIns.some(e => e.status === 'cancelled') ? `<span style="color:var(--danger)">&#8856; VOIDED</span>` : '-')}</td>
                                     <td>
-                                        ${!c.eirOut || c.eirOut.status === 'cancelled' ? `<button class="btn btn-warning btn-sm" onclick="NPM.createEIR('${c.shipmentId}','${c.id}','out')">${t('eirOut')}</button>` : ''}
-                                        ${c.eirOut && c.eirOut.status !== 'cancelled' && (!c.eirIn || c.eirIn.status === 'cancelled') ? `<button class="btn btn-success btn-sm" onclick="NPM.createEIR('${c.shipmentId}','${c.id}','in')">${t('eirIn')}</button>` : ''}
-                                        ${(c.eirIn && c.eirIn.status !== 'cancelled') || (c.eirOut && c.eirOut.status !== 'cancelled') ? `<button class="btn btn-outline btn-sm" onclick="NPM.printEIR('${c.id}')">${t('print')}</button>` : ''}
+                                        <div style="display:flex;flex-direction:column;gap:4px">
+                                            ${!getActiveEir(c.eirOuts) ? `<div><button class="btn btn-warning btn-sm" onclick="NPM.createEIR('${c.shipmentId}','${c.id}','out')">${t('eirOut')}</button></div>` : `<div class="btn-group"><button class="btn btn-outline btn-sm" onclick="NPM.printEIR('${c.id}')">Print Out</button><button class="btn btn-danger btn-sm" onclick="NPM.showVoidModal('${c.shipmentId}','${c.id}','out','list')">Void Out</button></div>`}
+                                            ${getActiveEir(c.eirOuts) ? `<div class="btn-group">${!getActiveEir(c.eirIns) ? `<button class="btn btn-success btn-sm" onclick="NPM.createEIR('${c.shipmentId}','${c.id}','in')">${t('eirIn')}</button>` : `<button class="btn btn-outline btn-sm" onclick="NPM.printEIR('${c.id}')">Print In</button><button class="btn btn-danger btn-sm" onclick="NPM.showVoidModal('${c.shipmentId}','${c.id}','in','list')">Void In</button>`}</div>` : ''}
+                                        </div>
                                     </td>
                                 </tr>
                             `).join('')}
@@ -1131,8 +1225,8 @@ const NPM = {
         }
 
         if (found && shipment) {
-            const hasActiveOut = found.eirOut && found.eirOut.status !== 'cancelled';
-            const hasActiveIn = found.eirIn && found.eirIn.status !== 'cancelled';
+            const hasActiveOut = getActiveEir(found.eirOuts);
+            const hasActiveIn = getActiveEir(found.eirIns);
             result.innerHTML = `
                 <div style="padding:16px;background:var(--success-light);border-radius:6px">
                     <div class="info-grid">
@@ -1141,8 +1235,8 @@ const NPM = {
                         <div class="info-item"><label>${t('vessel')}</label><div class="value">${shipment.vesselName}</div></div>
                         <div class="info-item"><label>${t('size')} / ${t('containerType')}</label><div class="value">${found.size}' ${found.type}</div></div>
                         <div class="info-item"><label>${t('inspected')}</label><div class="value">${found.inspected ? t('yes') : t('no')}</div></div>
-                        <div class="info-item"><label>${t('eirOut')}</label><div class="value">${hasActiveOut ? formatDateTime(found.eirOut.time) : t('pending')}</div></div>
-                        <div class="info-item"><label>${t('eirIn')}</label><div class="value">${hasActiveIn ? formatDateTime(found.eirIn.time) : t('pending')}</div></div>
+                        <div class="info-item"><label>${t('eirOut')}</label><div class="value">${hasActiveOut ? formatDateTime(hasActiveOut.time) : t('pending')}</div></div>
+                        <div class="info-item"><label>${t('eirIn')}</label><div class="value">${hasActiveIn ? formatDateTime(hasActiveIn.time) : t('pending')}</div></div>
                     </div>
                     <div class="btn-group" style="margin-top:12px">
                         ${!hasActiveOut ? `<button class="btn btn-warning btn-sm" onclick="NPM.createEIR('${shipment.id}','${found.id}','out')">${t('createEirOut')}</button>` : ''}
