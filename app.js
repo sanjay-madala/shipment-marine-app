@@ -124,7 +124,22 @@ function ssPick(id, value, label, onChangeFn) {
 // Close all dropdowns when clicking outside
 document.addEventListener('click', () => {
     document.querySelectorAll('.ss-list').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.action-dropdown.show').forEach(el => el.classList.remove('show'));
 });
+
+// Toggle action menu (kebab)
+function toggleActionMenu(btn, e) {
+    (e || window.event).stopPropagation();
+    const dd = btn.nextElementSibling;
+    const wasOpen = dd.classList.contains('show');
+    document.querySelectorAll('.action-dropdown.show').forEach(el => el.classList.remove('show'));
+    if (!wasOpen) {
+        const rect = btn.getBoundingClientRect();
+        dd.style.top = (rect.bottom + 4) + 'px';
+        dd.style.left = rect.left + 'px';
+        dd.classList.add('show');
+    }
+}
 
 // SCM-specific SS callbacks
 function scmOnVesselChangeSS(vesselId) {
@@ -155,7 +170,7 @@ function scmGetBOMPreviewHTML(serviceId) {
     const service = MASTERS.services.find(s => s.id === serviceId);
     if (!service) return '';
     return `<div style="margin-top:8px;padding:12px;background:var(--primary-light);border:1px solid var(--primary);border-radius:6px">
-        <div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:8px">Sales BOM — ${service.name}</div>
+        <div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:8px">Sales BOM — ${service.id}</div>
         <table style="width:100%;border-collapse:collapse">
             <thead><tr style="background:rgba(255,255,255,.5)">
                 <th style="text-align:left;font-size:11px;padding:3px 8px;font-weight:600;color:var(--gray-600)">Item Code</th>

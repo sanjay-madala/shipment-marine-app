@@ -1,23 +1,100 @@
 // ========== MASTER DATA (from Marine_comments.xlsx) ==========
 
+// WBS Master — maps VESSL + VSART (job type) to POSID (WBS element)
+// Key format: "tugId_jobType" → WBS string
+const WBS_MASTER = {
+    // BKK tugs (VSART = HO for all, OT for some)
+    'RS1_HO': '02S18BK0RS1  0000',
+    'RS2_HO': '02S18BK0RS2  0000',
+    'RS7_HO': '02S18BK0RS7  0000',
+    'RS9_HO': '02S18BK0RS9  0000', 'RS9_OT': '02S18BK0RS9  0000',
+    'RS10_HO': '02S18BKRS10  0000',
+    'RS19_HO': '02S18BKRS19  0000',
+    'RS20_HO': '02S21BKRS20  0000',
+    'RS21_HO': '02S18BKRS21  0000',
+    'RS25_HO': '02S18BKRS25  0000',
+    'RS28_HO': '02S25BKRS28  0000',
+    'RS39_HO': '02S18BKRS39  0000',
+    'SC14_HO': '02S18BKSC14  0000',
+    'SC15B_HO': '02S18BKSC15  0000',
+    'BKKOTH_HO': '02S18BK-OTH  0000', 'BKKOTH_OT': '02S18BK-OTH  0000',
+    // MTP tugs — HI / HO / OT
+    'KNO101_HI': '02S15KNO101HI0000', 'KNO101_HO': '02S15KNO101HO0000', 'KNO101_OT': '02S15KNO101OT0000',
+    'KNO102_HI': '02S15KNO102HI0000', 'KNO102_HO': '02S15KNO102HO0000', 'KNO102_OT': '02S15KNO102OT0000',
+    'KNO103_HI': '02S15KNO103HI0000', 'KNO103_HO': '02S15KNO103HO0000', 'KNO103_OT': '02S15KNO103OT0000',
+    'KNO201_HI': '02S15KNO201HI0000', 'KNO201_HO': '02S15KNO201HO0000', 'KNO201_OT': '02S15KNO201OT0000',
+    'KNO301_HI': '02S15KNO301HI0000', 'KNO301_HO': '02S15KNO301HO0000', 'KNO301_OT': '02S15KNO301OT0000',
+    'KNO401_HI': '02S15KNO401HI0000', 'KNO401_HO': '02S15KNO401HO0000', 'KNO401_OT': '02S15KNO401OT0000',
+    'KNO402_HI': '02S15KNO402HI0000', 'KNO402_HO': '02S15KNO402HO0000', 'KNO402_OT': '02S15KNO402OT0000',
+    'RS6_HI': '02S15000RS6HI0000', 'RS6_HO': '02S15000RS6HO0000', 'RS6_OT': '02S15000RS6OT0000',
+    'RS11_HI': '02S1500RS11HI0000', 'RS11_HO': '02S1500RS11HO0000', 'RS11_OT': '02S1500RS11OT0000',
+    'RS14_HI': '02S1500RS14HI0000', 'RS14_HO': '02S1500RS14HO0000', 'RS14_OT': '02S1500RS14OT0000',
+    'RS15_HI': '02S1500RS15HI0000', 'RS15_HO': '02S1500RS15HO0000', 'RS15_OT': '02S1500RS15OT0000',
+    'RS16_HI': '02S1500RS16HI0000', 'RS16_HO': '02S1500RS16HO0000', 'RS16_OT': '02S1500RS16OT0000',
+    'RS17_HI': '02S1500RS17HI0000', 'RS17_HO': '02S1500RS17HO0000', 'RS17_OT': '02S1500RS17OT0000',
+    'RS18_HI': '02S1500RS18HI0000', 'RS18_HO': '02S1500RS18HO0000', 'RS18_OT': '02S1500RS18OT0000',
+    'SC17_HI': '02S1500SC17HI0000', 'SC17_HO': '02S1500SC17HO0000', 'SC17_OT': '02S1500SC17OT0000',
+    'SC18_HI': '02S1500SC18HI0000', 'SC18_HO': '02S1500SC18HO0000', 'SC18_OT': '02S1500SC18OT0000',
+    'SC19_HI': '02S1500SC19HI0000', 'SC19_HO': '02S1500SC19HO0000', 'SC19_OT': '02S1500SC19OT0000',
+    'SC20_HI': '02S2400SC20HI0000', 'SC20_HO': '02S2400SC20HO0000', 'SC20_OT': '02S2400SC20OT0000',
+};
+
+// Lookup WBS by tug ID and job type
+function lookupWBS(tugId, jobTypeId) {
+    // Try exact job type first, then fallback to HO
+    return WBS_MASTER[`${tugId}_${jobTypeId}`] || WBS_MASTER[`${tugId}_HO`] || '';
+}
+
 // Price Master — THB per unit per BOM item code
 const PRICE_MASTER = {
-    '7SHITUGBOAT00001': 120000,
-    '7SHITUGBOAT00002': 120000,
-    '7SHITUGBOAT00003': 115000,
-    '7SHITUGBOAT00004': 115000,
-    '7SHITUGBOAT00005': 100000,
-    '7SHITUGBOAT00006': 150000,
-    '7SHITUGBOAT00007': 150000,
-    '7SHISTANDBY00001':  18000,
-    '7SHISTANDBY00002':  18000,
-    '7SHISTANDBY00003':  18000,
-    '7SHISTANDBY00004':  20000,
-    '7SHIROPE00000001':  15000,
-    '7SHIPILOT0000001':  35000,
-    '7SHIPILOT0000002':  35000,
-    '7SHOLAUNCH000001':  25000,
-    '7SHOJETTYG000001':  20000,
+    // BKK — Tug Boat (7SHI...)
+    '7SHITUGBOAT00001': 120000, '7SHITUGBOAT00002': 120000,
+    '7SHITUGBOAT00003': 115000, '7SHITUGBOAT00004': 115000,
+    '7SHITUGBOAT00005': 100000, '7SHITUGBOAT00006': 150000,
+    '7SHITUGBOAT00007': 150000, '7SHITUGBOAT00008': 150000,
+    '7SHITUGBOAT00009': 130000, '7SHITUGBOAT00010': 130000,
+    '7SHITUGBOAT00011': 125000, '7SHITUGBOAT00012': 125000,
+    '7SHITUGBOAT00013': 140000, '7SHITUGBOAT00014': 140000,
+    '7SHITUGBOAT00015': 110000, '7SHITUGBOAT00016': 110000,
+    '7SHITUGBOAT00017': 135000, '7SHITUGBOAT00018': 135000,
+    // BKK — Standby / Rope / Pilot
+    '7SHISTANDBY00001': 18000, '7SHISTANDBY00002': 18000,
+    '7SHISTANDBY00003': 18000, '7SHISTANDBY00004': 20000,
+    '7SHIROPE00000001': 15000, '7SHIROPE00000002': 15000,
+    '7SHIROPE00000003': 15000, '7SHIROPE00000004': 15000,
+    '7SHIROPE00000005': 15000,
+    '7SHIPILOT0000001': 35000, '7SHIPILOT0000002': 35000,
+    '7SHIPILOT0000006': 35000,
+    // MTP — Tug Boat (7SHO...)
+    '7SHOTUGBOAT00001': 130000, '7SHOTUGBOAT00002': 130000,
+    '7SHOTUGBOAT00003': 125000, '7SHOTUGBOAT00004': 125000,
+    '7SHOTUGBOAT00005': 125000, '7SHOTUGBOAT00006': 140000,
+    '7SHOTUGBOAT00007': 140000, '7SHOTUGBOAT00008': 140000,
+    '7SHOTUGBOAT00009': 155000, '7SHOTUGBOAT00010': 155000,
+    '7SHOTUGBOAT00011': 155000, '7SHOTUGBOAT00012': 155000,
+    '7SHOTUGBOAT00013': 170000, '7SHOTUGBOAT00014': 170000,
+    '7SHOTUGBOAT00015': 170000, '7SHOTUGBOAT00016': 170000,
+    '7SHOTUGBOAT00017': 170000, '7SHOTUGBOAT00018': 120000,
+    '7SHOTUGBOAT00019': 120000, '7SHOTUGBOAT00020': 130000,
+    '7SHOTUGBOAT00021': 130000, '7SHOTUGBOAT00022': 135000,
+    '7SHOTUGBOAT00023': 135000, '7SHOTUGBOAT00024': 130000,
+    '7SHOTUGBOAT00025': 130000, '7SHOTUGBOAT00026': 160000,
+    '7SHOTUGBOAT00027': 160000, '7SHOTUGBOAT00028': 160000,
+    '7SHOTUGBOAT00029': 160000, '7SHOTUGBOAT00030': 160000,
+    '7SHOTUGBOAT00031': 145000, '7SHOTUGBOAT00032': 145000,
+    // MTP — Standby / Rope / Launch / Pilot / Other
+    '7SHOSTANDBY00001': 20000, '7SHOSTANDBY00002': 20000,
+    '7SHOSTANDBY00003': 20000, '7SHOSTANDBY00004': 22000,
+    '7SHOSTANDBY00005': 22000, '7SHOSTANDBY00011': 20000,
+    '7SHOROPE00000001': 16000, '7SHOROPE00000008': 16000,
+    '7SHOLAUNCH000001': 25000, '7SHOLAUNCH000002': 25000,
+    '7SHOLAUNCH000003': 25000, '7SHOLAUNCH000007': 25000,
+    '7SHOPILOT0000001': 38000,
+    '7SHOMANPWR000001': 15000, '7SHOMANPWR000002': 15000, '7SHOMANPWR000003': 15000,
+    '7SHOOTHER0000001': 10000, '7SHOOTHER0000002': 10000,
+    '7SHOOTHER0000003': 10000, '7SHOOTHER0000004': 10000,
+    // Offshore
+    '7SOFCHARTERHIRE1': 500000, '7SOFMANPWR000001': 50000, '7SOFMBDEMOB00001': 200000,
 };
 
 const MASTERS = {
@@ -63,35 +140,272 @@ const MASTERS = {
         { id: 'PTGC-E', name: 'PTTGCPORT', desc: 'PTT GLOBAL CHEMICAL- MAPTAPHUT IEAT (E)', site: 'MTP' },
         { id: 'PTTANK', name: 'PTTTANK', desc: 'PTT TANK TERMINAL- MAPTAPHUT IEAT', site: 'MTP' },
     ],
-    // Sales BOM - simplified representative set from real data
+    // Sales BOM — real SAP MATNR data (ZBOM = service packages, LEIS = line items)
     services: [
-        { id: 'SVC001', name: 'Harbour Towage - Inbound', items: [
+        // ===== BKK Services =====
+        { id: 'SBKKBERTHING-NNN', name: 'BKK — Berthing', site: 'BKK', items: [
             { id: '7SHITUGBOAT00001', desc: 'Tug Boat Service #1', unit: 'Trip' },
             { id: '7SHITUGBOAT00002', desc: 'Tug Boat Service #2', unit: 'Trip' },
             { id: '7SHISTANDBY00001', desc: 'Standby Charge', unit: 'Hour' },
+            { id: '7SHIROPE00000001', desc: 'Rope Service', unit: 'Trip' },
         ]},
-        { id: 'SVC002', name: 'Harbour Towage - Outbound', items: [
+        { id: 'SBKKUNBERTHING-N', name: 'BKK — Unberthing', site: 'BKK', items: [
             { id: '7SHITUGBOAT00003', desc: 'Tug Boat Service #3', unit: 'Trip' },
             { id: '7SHITUGBOAT00004', desc: 'Tug Boat Service #4', unit: 'Trip' },
             { id: '7SHISTANDBY00002', desc: 'Standby Charge', unit: 'Hour' },
+            { id: '7SHIROPE00000002', desc: 'Rope Service #2', unit: 'Trip' },
         ]},
-        { id: 'SVC003', name: 'Shifting', items: [
+        { id: 'SBKKSHIFTING-1OP', name: 'BKK — Shifting (1 Op.)', site: 'BKK', items: [
             { id: '7SHITUGBOAT00005', desc: 'Tug Boat Service #5', unit: 'Trip' },
             { id: '7SHISTANDBY00003', desc: 'Standby Charge', unit: 'Hour' },
         ]},
-        { id: 'SVC004', name: 'Offshore / Towing', items: [
+        { id: 'SBKKSHIFTING-2OP', name: 'BKK — Shifting (2 Op.)', site: 'BKK', items: [
+            { id: '7SHITUGBOAT00005', desc: 'Tug Boat Service #5', unit: 'Trip' },
             { id: '7SHITUGBOAT00006', desc: 'Tug Boat Service #6', unit: 'Trip' },
+            { id: '7SHISTANDBY00003', desc: 'Standby Charge', unit: 'Hour' },
+        ]},
+        { id: 'SBKKESCORTING-NN', name: 'BKK — Escorting', site: 'BKK', items: [
             { id: '7SHITUGBOAT00007', desc: 'Tug Boat Service #7', unit: 'Trip' },
+            { id: '7SHITUGBOAT00008', desc: 'Tug Boat Service #8', unit: 'Trip' },
+        ]},
+        { id: 'SBKKESCORT-BERTH', name: 'BKK — Escort Berthing', site: 'BKK', items: [
+            { id: '7SHITUGBOAT00009', desc: 'Tug Boat Service #9', unit: 'Trip' },
+            { id: '7SHITUGBOAT00010', desc: 'Tug Boat Service #10', unit: 'Trip' },
+            { id: '7SHISTANDBY00001', desc: 'Standby Charge', unit: 'Hour' },
+        ]},
+        { id: 'SBKKUNBERT-ESCOR', name: 'BKK — Unberthing w/ Escort', site: 'BKK', items: [
+            { id: '7SHITUGBOAT00011', desc: 'Tug Boat Service #11', unit: 'Trip' },
+            { id: '7SHITUGBOAT00012', desc: 'Tug Boat Service #12', unit: 'Trip' },
+            { id: '7SHISTANDBY00002', desc: 'Standby Charge', unit: 'Hour' },
+        ]},
+        { id: 'SBKKTOWING-NNNNN', name: 'BKK — Towing', site: 'BKK', items: [
+            { id: '7SHITUGBOAT00013', desc: 'Tug Boat Service #13', unit: 'Trip' },
+            { id: '7SHITUGBOAT00014', desc: 'Tug Boat Service #14', unit: 'Trip' },
+            { id: '7SHIROPE00000003', desc: 'Rope Service #3', unit: 'Trip' },
+        ]},
+        { id: 'SBKKTURNING-NNNN', name: 'BKK — Turning', site: 'BKK', items: [
+            { id: '7SHITUGBOAT00015', desc: 'Tug Boat Service #15', unit: 'Trip' },
+            { id: '7SHITUGBOAT00016', desc: 'Tug Boat Service #16', unit: 'Trip' },
+        ]},
+        { id: 'SBKKLAUNCHING-NN', name: 'BKK — Launching', site: 'BKK', items: [
+            { id: '7SHOLAUNCH000007', desc: 'Launch Service', unit: 'Trip' },
+            { id: '7SHIPILOT0000006', desc: 'Pilot Service #6', unit: 'Trip' },
+        ]},
+        { id: 'SBKKGROUNDING-NN', name: 'BKK — Grounding', site: 'BKK', items: [
+            { id: '7SHITUGBOAT00017', desc: 'Tug Boat Service #17', unit: 'Trip' },
+            { id: '7SHITUGBOAT00018', desc: 'Tug Boat Service #18', unit: 'Trip' },
+            { id: '7SHIROPE00000004', desc: 'Rope Service #4', unit: 'Trip' },
+        ]},
+        { id: 'SBKKSALVAGE-NNNN', name: 'BKK — Salvage', site: 'BKK', items: [
+            { id: '7SHITUGBOAT00017', desc: 'Tug Boat Service #17', unit: 'Trip' },
+            { id: '7SHITUGBOAT00018', desc: 'Tug Boat Service #18', unit: 'Trip' },
+            { id: '7SHIROPE00000005', desc: 'Rope Service #5', unit: 'Trip' },
             { id: '7SHISTANDBY00004', desc: 'Standby Charge', unit: 'Hour' },
-            { id: '7SHIROPE00000001', desc: 'Rope Service', unit: 'Trip' },
         ]},
-        { id: 'SVC005', name: 'Pilot Service', items: [
-            { id: '7SHIPILOT0000001', desc: 'Pilot Service #1', unit: 'Trip' },
-            { id: '7SHIPILOT0000002', desc: 'Pilot Service #2', unit: 'Trip' },
+        // ===== MTP Services =====
+        { id: 'SMTPBERTHING-01L', name: 'MTP — Berthing 01 Large', site: 'MTP', items: [
+            { id: '7SHOTUGBOAT00001', desc: 'Tug Boat Service #1', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00002', desc: 'Tug Boat Service #2', unit: 'Trip' },
+            { id: '7SHOSTANDBY00001', desc: 'Standby Charge', unit: 'Hour' },
+            { id: '7SHOROPE00000001', desc: 'Rope Service #1', unit: 'Trip' },
         ]},
-        { id: 'SVC006', name: 'Launch / Jetty Service', active: false, items: [
-            { id: '7SHOLAUNCH000001', desc: 'Launch Service', unit: 'Trip' },
-            { id: '7SHOJETTYG000001', desc: 'Jetty Guard Service', unit: 'Trip' },
+        { id: 'SMTPBERTHING-02L', name: 'MTP — Berthing 02 Large', site: 'MTP', items: [
+            { id: '7SHOTUGBOAT00003', desc: 'Tug Boat Service #3', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00004', desc: 'Tug Boat Service #4', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00005', desc: 'Tug Boat Service #5', unit: 'Trip' },
+            { id: '7SHOSTANDBY00002', desc: 'Standby Charge', unit: 'Hour' },
+        ]},
+        { id: 'SMTPBERTHING-02M', name: 'MTP — Berthing 02 Medium', site: 'MTP', items: [
+            { id: '7SHOTUGBOAT00003', desc: 'Tug Boat Service #3', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00004', desc: 'Tug Boat Service #4', unit: 'Trip' },
+            { id: '7SHOSTANDBY00002', desc: 'Standby Charge', unit: 'Hour' },
+        ]},
+        { id: 'SMTPBERTHING-02S', name: 'MTP — Berthing 02 Small', site: 'MTP', items: [
+            { id: '7SHOTUGBOAT00003', desc: 'Tug Boat Service #3', unit: 'Trip' },
+            { id: '7SHOSTANDBY00002', desc: 'Standby Charge', unit: 'Hour' },
+        ]},
+        { id: 'SMTPBERTHING-03L', name: 'MTP — Berthing 03 Large', site: 'MTP', items: [
+            { id: '7SHOTUGBOAT00006', desc: 'Tug Boat Service #6', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00007', desc: 'Tug Boat Service #7', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00008', desc: 'Tug Boat Service #8', unit: 'Trip' },
+            { id: '7SHOSTANDBY00003', desc: 'Standby Charge', unit: 'Hour' },
+        ]},
+        { id: 'SMTPBERTHING-04L', name: 'MTP — Berthing 04 Large', site: 'MTP', items: [
+            { id: '7SHOTUGBOAT00009', desc: 'Tug Boat Service #9', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00010', desc: 'Tug Boat Service #10', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00011', desc: 'Tug Boat Service #11', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00012', desc: 'Tug Boat Service #12', unit: 'Trip' },
+            { id: '7SHOSTANDBY00003', desc: 'Standby Charge', unit: 'Hour' },
+        ]},
+        { id: 'SMTPBERTHING-05L', name: 'MTP — Berthing 05 Large', site: 'MTP', items: [
+            { id: '7SHOTUGBOAT00013', desc: 'Tug Boat Service #13', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00014', desc: 'Tug Boat Service #14', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00015', desc: 'Tug Boat Service #15', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00016', desc: 'Tug Boat Service #16', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00017', desc: 'Tug Boat Service #17', unit: 'Trip' },
+            { id: '7SHOSTANDBY00003', desc: 'Standby Charge', unit: 'Hour' },
+        ]},
+        { id: 'SMTPUNBERTHG-01L', name: 'MTP — Unberthing 01 Large', site: 'MTP', items: [
+            { id: '7SHOTUGBOAT00001', desc: 'Tug Boat Service #1', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00002', desc: 'Tug Boat Service #2', unit: 'Trip' },
+            { id: '7SHOSTANDBY00001', desc: 'Standby Charge', unit: 'Hour' },
+        ]},
+        { id: 'SMTPUNBERTHG-01M', name: 'MTP — Unberthing 01 Medium', site: 'MTP', items: [
+            { id: '7SHOTUGBOAT00001', desc: 'Tug Boat Service #1', unit: 'Trip' },
+            { id: '7SHOSTANDBY00001', desc: 'Standby Charge', unit: 'Hour' },
+        ]},
+        { id: 'SMTPUNBERTHG-02L', name: 'MTP — Unberthing 02 Large', site: 'MTP', items: [
+            { id: '7SHOTUGBOAT00003', desc: 'Tug Boat Service #3', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00004', desc: 'Tug Boat Service #4', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00005', desc: 'Tug Boat Service #5', unit: 'Trip' },
+            { id: '7SHOSTANDBY00002', desc: 'Standby Charge', unit: 'Hour' },
+        ]},
+        { id: 'SMTPUNBERTHG-02M', name: 'MTP — Unberthing 02 Medium', site: 'MTP', items: [
+            { id: '7SHOTUGBOAT00003', desc: 'Tug Boat Service #3', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00004', desc: 'Tug Boat Service #4', unit: 'Trip' },
+            { id: '7SHOSTANDBY00002', desc: 'Standby Charge', unit: 'Hour' },
+        ]},
+        { id: 'SMTPUNBERTHG-02S', name: 'MTP — Unberthing 02 Small', site: 'MTP', items: [
+            { id: '7SHOTUGBOAT00003', desc: 'Tug Boat Service #3', unit: 'Trip' },
+            { id: '7SHOSTANDBY00002', desc: 'Standby Charge', unit: 'Hour' },
+        ]},
+        { id: 'SMTPUNBERTHG-03L', name: 'MTP — Unberthing 03 Large', site: 'MTP', items: [
+            { id: '7SHOTUGBOAT00006', desc: 'Tug Boat Service #6', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00007', desc: 'Tug Boat Service #7', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00008', desc: 'Tug Boat Service #8', unit: 'Trip' },
+            { id: '7SHOSTANDBY00003', desc: 'Standby Charge', unit: 'Hour' },
+        ]},
+        { id: 'SMTPUNBERTHG-04L', name: 'MTP — Unberthing 04 Large', site: 'MTP', items: [
+            { id: '7SHOTUGBOAT00009', desc: 'Tug Boat Service #9', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00010', desc: 'Tug Boat Service #10', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00011', desc: 'Tug Boat Service #11', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00012', desc: 'Tug Boat Service #12', unit: 'Trip' },
+        ]},
+        { id: 'SMTPUNBERTHG-05L', name: 'MTP — Unberthing 05 Large', site: 'MTP', items: [
+            { id: '7SHOTUGBOAT00013', desc: 'Tug Boat Service #13', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00014', desc: 'Tug Boat Service #14', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00015', desc: 'Tug Boat Service #15', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00016', desc: 'Tug Boat Service #16', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00017', desc: 'Tug Boat Service #17', unit: 'Trip' },
+        ]},
+        { id: 'SMTPTUG4SHIFTING', name: 'MTP — Shifting', site: 'MTP', items: [
+            { id: '7SHOTUGBOAT00018', desc: 'Tug Boat Service #18', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00019', desc: 'Tug Boat Service #19', unit: 'Trip' },
+            { id: '7SHOSTANDBY00011', desc: 'Standby Charge', unit: 'Hour' },
+        ]},
+        { id: 'SMTPBERTH-HO-LCB', name: 'MTP — Berthing HO (LCB)', site: 'MTP', items: [
+            { id: '7SHOTUGBOAT00020', desc: 'Tug Boat Service #20', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00021', desc: 'Tug Boat Service #21', unit: 'Trip' },
+            { id: '7SHOSTANDBY00004', desc: 'Standby Charge', unit: 'Hour' },
+        ]},
+        { id: 'SMTPBERTHIRPC-HO', name: 'MTP — Berthing IRPC HO', site: 'MTP', items: [
+            { id: '7SHOTUGBOAT00022', desc: 'Tug Boat Service #22', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00023', desc: 'Tug Boat Service #23', unit: 'Trip' },
+            { id: '7SHOSTANDBY00005', desc: 'Standby Charge', unit: 'Hour' },
+        ]},
+        { id: 'SMTPBERTHSPRCPTT', name: 'MTP — Berthing SPRC/PTT', site: 'MTP', items: [
+            { id: '7SHOTUGBOAT00024', desc: 'Tug Boat Service #24', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00025', desc: 'Tug Boat Service #25', unit: 'Trip' },
+            { id: '7SHOSTANDBY00004', desc: 'Standby Charge', unit: 'Hour' },
+        ]},
+        { id: 'SMTPLMPT2BERTH5L', name: 'MTP — LMPT2 Berthing 5 Large', site: 'MTP', items: [
+            { id: '7SHOTUGBOAT00026', desc: 'Tug Boat Service #26', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00027', desc: 'Tug Boat Service #27', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00028', desc: 'Tug Boat Service #28', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00029', desc: 'Tug Boat Service #29', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00030', desc: 'Tug Boat Service #30', unit: 'Trip' },
+        ]},
+        { id: 'SMTPLMPT2BTH3_5L', name: 'MTP — LMPT2 Berthing 3-5 Large', site: 'MTP', items: [
+            { id: '7SHOTUGBOAT00026', desc: 'Tug Boat Service #26', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00027', desc: 'Tug Boat Service #27', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00028', desc: 'Tug Boat Service #28', unit: 'Trip' },
+        ]},
+        { id: 'SMTPLNGUNBERTH5L', name: 'MTP — LNG Unberthing 5 Large', site: 'MTP', items: [
+            { id: '7SHOTUGBOAT00026', desc: 'Tug Boat Service #26', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00027', desc: 'Tug Boat Service #27', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00028', desc: 'Tug Boat Service #28', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00029', desc: 'Tug Boat Service #29', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00030', desc: 'Tug Boat Service #30', unit: 'Trip' },
+        ]},
+        { id: 'SMTPLNGUNBTH3_5L', name: 'MTP — LNG Unberthing 3-5 Large', site: 'MTP', items: [
+            { id: '7SHOTUGBOAT00026', desc: 'Tug Boat Service #26', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00027', desc: 'Tug Boat Service #27', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00028', desc: 'Tug Boat Service #28', unit: 'Trip' },
+        ]},
+        { id: 'SMTPMOORIN-SPMRY', name: 'MTP — Mooring SPM Rayong', site: 'MTP', items: [
+            { id: '7SHOTUGBOAT00031', desc: 'Tug Boat Service #31', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00032', desc: 'Tug Boat Service #32', unit: 'Trip' },
+            { id: '7SHOROPE00000008', desc: 'Rope Service #8', unit: 'Trip' },
+        ]},
+        { id: 'SMTPLAUNCH-SPMRY', name: 'MTP — Launch SPM Rayong', site: 'MTP', items: [
+            { id: '7SHOLAUNCH000001', desc: 'Launch Service #1', unit: 'Trip' },
+            { id: '7SHOLAUNCH000002', desc: 'Launch Service #2', unit: 'Trip' },
+        ]},
+        { id: 'SMTPLAUNCHI-BLCP', name: 'MTP — Launching BLCP', site: 'MTP', items: [
+            { id: '7SHOLAUNCH000003', desc: 'Launch Service #3', unit: 'Trip' },
+            { id: '7SHOPILOT0000001', desc: 'Pilot Service #1', unit: 'Trip' },
+        ]},
+        { id: 'SMTPLAUNCHING001', name: 'MTP — Launching', site: 'MTP', items: [
+            { id: '7SHOLAUNCH000001', desc: 'Launch Service #1', unit: 'Trip' },
+            { id: '7SHOPILOT0000001', desc: 'Pilot Service #1', unit: 'Trip' },
+        ]},
+        { id: 'SMTPCENTERASSIST', name: 'MTP — Center Assist', site: 'MTP', items: [
+            { id: '7SHOMANPWR000001', desc: 'Manpower Service #1', unit: 'Trip' },
+            { id: '7SHOMANPWR000002', desc: 'Manpower Service #2', unit: 'Trip' },
+        ]},
+        { id: 'SMTPCENTEROPERAT', name: 'MTP — Center Operation', site: 'MTP', items: [
+            { id: '7SHOMANPWR000001', desc: 'Manpower Service #1', unit: 'Trip' },
+            { id: '7SHOMANPWR000003', desc: 'Manpower Service #3', unit: 'Trip' },
+        ]},
+        { id: 'SMTPSTADBYPTTLNG', name: 'MTP — Standby PTT LNG', site: 'MTP', items: [
+            { id: '7SHOSTANDBY00011', desc: 'Standby Charge', unit: 'Hour' },
+        ]},
+        { id: 'SMTPDRAFT-READNG', name: 'MTP — Draft Reading', site: 'MTP', items: [
+            { id: '7SHOOTHER0000001', desc: 'Other Service #1', unit: 'Trip' },
+        ]},
+        { id: 'SMTPEMEGCY-RESPD', name: 'MTP — Emergency Response', site: 'MTP', items: [
+            { id: '7SHOTUGBOAT00001', desc: 'Tug Boat Service #1', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00002', desc: 'Tug Boat Service #2', unit: 'Trip' },
+            { id: '7SHOSTANDBY00001', desc: 'Standby Charge', unit: 'Hour' },
+        ]},
+        { id: 'SMTP-OFFSHORE-HO', name: 'MTP — Offshore HO', site: 'MTP', items: [
+            { id: '7SHOTUGBOAT00001', desc: 'Tug Boat Service #1', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00002', desc: 'Tug Boat Service #2', unit: 'Trip' },
+            { id: '7SHOROPE00000001', desc: 'Rope Service #1', unit: 'Trip' },
+            { id: '7SHOSTANDBY00001', desc: 'Standby Charge', unit: 'Hour' },
+        ]},
+        { id: 'SMTPPTTGCS-HO1-1', name: 'MTP — PTTGC South HO 1-1', site: 'MTP', items: [
+            { id: '7SHOTUGBOAT00003', desc: 'Tug Boat Service #3', unit: 'Trip' },
+            { id: '7SHOSTANDBY00002', desc: 'Standby Charge', unit: 'Hour' },
+        ]},
+        { id: 'SMTPPTTGCS-HO1-2', name: 'MTP — PTTGC South HO 1-2', site: 'MTP', items: [
+            { id: '7SHOTUGBOAT00003', desc: 'Tug Boat Service #3', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00004', desc: 'Tug Boat Service #4', unit: 'Trip' },
+            { id: '7SHOSTANDBY00002', desc: 'Standby Charge', unit: 'Hour' },
+        ]},
+        { id: 'SMTPPTTGCS-HO2-1', name: 'MTP — PTTGC South HO 2-1', site: 'MTP', items: [
+            { id: '7SHOTUGBOAT00005', desc: 'Tug Boat Service #5', unit: 'Trip' },
+            { id: '7SHOSTANDBY00003', desc: 'Standby Charge', unit: 'Hour' },
+        ]},
+        { id: 'SMTPPTTGCS-HO2-2', name: 'MTP — PTTGC South HO 2-2', site: 'MTP', items: [
+            { id: '7SHOTUGBOAT00005', desc: 'Tug Boat Service #5', unit: 'Trip' },
+            { id: '7SHOTUGBOAT00006', desc: 'Tug Boat Service #6', unit: 'Trip' },
+            { id: '7SHOSTANDBY00003', desc: 'Standby Charge', unit: 'Hour' },
+        ]},
+        { id: 'SMTPSALEGOODS-HI', name: 'MTP — Sale Goods HI', site: 'MTP', items: [
+            { id: '7SHOOTHER0000002', desc: 'Other Service #2', unit: 'Trip' },
+        ]},
+        { id: 'SMTPSALEGOODS-HO', name: 'MTP — Sale Goods HO', site: 'MTP', items: [
+            { id: '7SHOOTHER0000003', desc: 'Other Service #3', unit: 'Trip' },
+        ]},
+        { id: 'SMTPSALEGOODS-OF', name: 'MTP — Sale Goods Offshore', site: 'MTP', items: [
+            { id: '7SHOOTHER0000004', desc: 'Other Service #4', unit: 'Trip' },
+        ]},
+        // ===== Offshore Charter =====
+        { id: 'SSOFCHARTERHIRE1', name: 'Offshore — Charter Hire', site: 'MTP', items: [
+            { id: '7SOFCHARTERHIRE1', desc: 'Charter Hire Service', unit: 'Day' },
+            { id: '7SOFMANPWR000001', desc: 'Manpower Service', unit: 'Day' },
+            { id: '7SOFMBDEMOB00001', desc: 'Mob/Demob Service', unit: 'Trip' },
         ]},
     ],
     // Activity Operation Master - real data
@@ -163,8 +477,11 @@ const MASTERS = {
     docTypes: ['E', 'F'],
 };
 
+// Helper to find service by id
+const _svc = id => MASTERS.services.find(s => s.id === id);
+
 // ========== SCM MOCK DATA ==========
-// Status flow: draft → open → dispatch → review → closed
+// Status flow: draft → open → dispatch → closed
 
 let scmTugSchedules = [
     {
@@ -218,12 +535,12 @@ let scmTugSchedules = [
         scope: 'In-Bay',
         workDate: '2026-03-01T06:00',
         activity: MASTERS.activities[0],
-        service: MASTERS.services[0],
+        service: _svc('SMTPBERTHING-02L'),
         pilot: 'Capt. Wichai',
         bomItems: [
-            { ...MASTERS.services[0].items[0], tug: null, wbs: '' },
-            { ...MASTERS.services[0].items[1], tug: null, wbs: '' },
-            { ...MASTERS.services[0].items[2], tug: null, wbs: '' },
+            { ..._svc('SMTPBERTHING-02L').items[0], tug: null, wbs: '' },
+            { ..._svc('SMTPBERTHING-02L').items[1], tug: null, wbs: '' },
+            { ..._svc('SMTPBERTHING-02L').items[2], tug: null, wbs: '' },
         ],
         createdAt: '2026-02-28T11:45',
     },
@@ -257,13 +574,13 @@ let scmTugSchedules = [
         scope: 'Out-Bay',
         workDate: '2026-03-06T16:00',
         activity: MASTERS.activities[9],
-        service: MASTERS.services[3],
+        service: _svc('SMTP-OFFSHORE-HO'),
         pilot: '',
         bomItems: [
-            { ...MASTERS.services[3].items[0], tug: null, wbs: '' },
-            { ...MASTERS.services[3].items[1], tug: null, wbs: '' },
-            { ...MASTERS.services[3].items[2], tug: null, wbs: '' },
-            { ...MASTERS.services[3].items[3], tug: null, wbs: '' },
+            { ..._svc('SMTP-OFFSHORE-HO').items[0], tug: null, wbs: '' },
+            { ..._svc('SMTP-OFFSHORE-HO').items[1], tug: null, wbs: '' },
+            { ..._svc('SMTP-OFFSHORE-HO').items[2], tug: null, wbs: '' },
+            { ..._svc('SMTP-OFFSHORE-HO').items[3], tug: null, wbs: '' },
         ],
         createdAt: '2026-03-03T08:25',
     },
@@ -299,12 +616,12 @@ let scmTugSchedules = [
         scope: 'In-Bay',
         workDate: '2026-03-01T06:00',
         activity: MASTERS.activities[0],
-        service: MASTERS.services[0],
+        service: _svc('SMTPBERTHING-02L'),
         pilot: 'Capt. Wichai',
         bomItems: [
-            { ...MASTERS.services[0].items[0], tug: MASTERS.tugBoats[13], wbs: '02S18MT0K101 0000' },
-            { ...MASTERS.services[0].items[1], tug: MASTERS.tugBoats[14], wbs: '02S18MT0K102 0000' },
-            { ...MASTERS.services[0].items[2], tug: null, wbs: '' },
+            { ..._svc('SMTPBERTHING-02L').items[0], tug: MASTERS.tugBoats[13], wbs: '02S18MT0K101 0000' },
+            { ..._svc('SMTPBERTHING-02L').items[1], tug: MASTERS.tugBoats[14], wbs: '02S18MT0K102 0000' },
+            { ..._svc('SMTPBERTHING-02L').items[2], tug: null, wbs: '' },
         ],
         createdAt: '2026-02-28T08:00',
     },
@@ -338,12 +655,12 @@ let scmTugSchedules = [
         scope: 'In-Bay',
         workDate: '2026-03-02T14:00',
         activity: MASTERS.activities[0],
-        service: MASTERS.services[0],
+        service: _svc('SMTPBERTHING-01L'),
         pilot: 'Capt. Decha',
         bomItems: [
-            { ...MASTERS.services[0].items[0], tug: MASTERS.tugBoats[16], wbs: '02S18MT0K201 0000' },
-            { ...MASTERS.services[0].items[1], tug: MASTERS.tugBoats[17], wbs: '02S18MT0K301 0000' },
-            { ...MASTERS.services[0].items[2], tug: null, wbs: '' },
+            { ..._svc('SMTPBERTHING-01L').items[0], tug: MASTERS.tugBoats[16], wbs: '02S18MT0K201 0000' },
+            { ..._svc('SMTPBERTHING-01L').items[1], tug: MASTERS.tugBoats[17], wbs: '02S18MT0K301 0000' },
+            { ..._svc('SMTPBERTHING-01L').items[2], tug: null, wbs: '' },
         ],
         createdAt: '2026-03-01T14:00',
     },

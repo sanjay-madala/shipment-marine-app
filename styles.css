@@ -67,14 +67,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .card-body { padding: 20px; }
 
 /* === Status Badges === */
-.badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
-.badge-draft { background: var(--gray-200); color: var(--gray-600); }
-.badge-open { background: var(--primary-light); color: var(--primary); }
-.badge-dispatch { background: var(--warning-light); color: var(--warning); }
-.badge-completed { background: var(--success-light); color: var(--success); }
-.badge-review { background: #fef3c7; color: #d97706; }
-.badge-closed { background: var(--gray-200); color: var(--gray-700); }
-.badge-cancelled { background: var(--danger-light); color: var(--danger); }
+.badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid transparent; }
+.badge-draft { background: #f3f4f6; color: #6b7280; border-color: #d1d5db; }
+.badge-open { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
+.badge-dispatch { background: #fef3c7; color: #b45309; border-color: #fcd34d; }
+.badge-completed { background: #d1fae5; color: #047857; border-color: #6ee7b7; }
+.badge-review { background: #fef3c7; color: #d97706; border-color: #fcd34d; }
+.badge-closed { background: #d1fae5; color: #047857; border-color: #6ee7b7; }
+.badge-cancelled { background: var(--danger-light); color: var(--danger); border-color: var(--danger); }
 
 /* === Tables === */
 .table-wrap { overflow-x: auto; }
@@ -107,7 +107,8 @@ tr.clickable { cursor: pointer; }
 .form-group.full-width { grid-column: 1 / -1; }
 label { font-size: 12px; font-weight: 600; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.3px; }
 label .req { color: var(--danger); }
-input, select, textarea { padding: 8px 12px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 14px; color: var(--gray-800); background: #fff; transition: border .15s; }
+input, select, textarea { padding: 8px 12px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 14px; color: var(--gray-800); background: #fff; transition: border .15s; box-sizing: border-box; }
+.form-group input, .form-group select, .form-group textarea, .form-group .ss-wrap { width: 100%; }
 input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,86,219,.1); }
 input:disabled, select:disabled { background: var(--gray-100); color: var(--gray-500); cursor: not-allowed; }
 textarea { resize: vertical; min-height: 60px; }
@@ -215,6 +216,18 @@ textarea { resize: vertical; min-height: 60px; }
 .ss-item:hover { background: var(--gray-50); }
 .ss-item.selected { background: var(--primary-light); color: var(--primary); font-weight: 600; }
 .ss-item.inactive { color: var(--gray-400); background: var(--gray-50); }
+
+/* === Action Menu (3-dot) === */
+.action-menu { position: relative; display: inline-block; }
+.action-dots { background: none; border: 1px solid var(--gray-300); border-radius: 50%; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--gray-500); transition: all .15s; }
+.action-dots::before { content: ''; display: inline-block; width: 16px; height: 3px; background-image: radial-gradient(circle, currentColor 1.5px, transparent 1.5px); background-size: 6px 3px; background-repeat: repeat-x; }
+.action-dots:hover { background: var(--gray-100); color: var(--gray-700); border-color: var(--gray-400); }
+.action-dropdown { display: none; position: fixed; background: #fff; border: 1px solid var(--gray-200); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.15); z-index: 9999; min-width: 140px; overflow: hidden; }
+.action-dropdown.show { display: block; }
+.action-dropdown-item { padding: 8px 14px; font-size: 13px; cursor: pointer; white-space: nowrap; color: var(--gray-700); }
+.action-dropdown-item:hover { background: var(--gray-50); }
+.action-dropdown-item.danger { color: var(--danger); }
+.action-dropdown-item.danger:hover { background: #fef2f2; }
 
 /* === Report-In Stage Grid === */
 .stages-list-grid { padding: 0 24px; }
