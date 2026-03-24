@@ -16,6 +16,8 @@ const TRANSLATIONS = {
         dispatch: 'Dispatched',
         completed: 'Completed',
         review: 'Review',
+        'report-in': 'Report-In',
+        reportIn: 'Report-In',
         closed: 'Closed',
         cancelled: 'Cancelled',
         status: 'Status',
@@ -269,12 +271,18 @@ const TRANSLATIONS = {
 
         // SCM - Review / Close
         reviewStatus: 'Under Review',
+        reportInStatus: 'Report-In Complete',
         closeShipment: 'Close',
         adminReview: 'Admin Review',
         reviewHint: 'All stages recorded. Admin can review and close.',
-        shipmentUnderReview: '{id} is now under review',
+        shipmentReportIn: '{id} report-in is now complete',
         shipmentClosed: '{id} has been closed',
         confirmClose: 'Close Shipment',
+        reopenShipment: 'Re-open',
+        confirmReopen: 'Re-open Shipment',
+        reopenShipmentConfirm: 'Re-open shipment {id}? Status will be set back to Dispatched.',
+        shipmentReopened: '{id} has been re-opened',
+        cannotReopenWithSO: 'Cannot re-open: shipment has a Sales Order',
         startTime: 'Start Time',
         endTime: 'End Time',
         adjustTime: 'Adjust Time',
@@ -381,6 +389,21 @@ const TRANSLATIONS = {
         settlementReportCreated: 'Settlement report {id} created',
         salesOrderCreated: '{count} sales order(s) created',
         postedToSAP: '{id} posted to SAP',
+        cancelSO: 'Cancel SO',
+        cancelSOTitle: 'Cancel Sales Order',
+        cancelSOConfirm: 'Are you sure you want to cancel this SO?',
+        cancelReason: 'Cancellation Reason',
+        cancelReasonPlaceholder: 'Enter reason for cancellation...',
+        cancelReasonRequired: 'Please enter a cancellation reason',
+        soCancelled: 'SO {id} has been cancelled',
+        soAlreadyCancelled: 'This SO is already cancelled',
+        cancelled: 'Cancelled',
+        vessel: 'Vessel',
+        port: 'Port',
+        activityOperation: 'Activity Operation',
+        createdDate: 'Created Date',
+        createdFrom: 'Created From',
+        createdTo: 'Created To',
     },
 
     th: {
@@ -398,6 +421,8 @@ const TRANSLATIONS = {
         dispatch: 'Dispatch',
         completed: 'Completed',
         review: 'Review',
+        'report-in': 'รายงานเข้า',
+        reportIn: 'รายงานเข้า',
         closed: 'Closed',
         cancelled: 'Cancelled',
         status: 'Status',
@@ -651,12 +676,18 @@ const TRANSLATIONS = {
 
         // SCM - Review / Close
         reviewStatus: 'อยู่ระหว่างตรวจสอบ',
+        reportInStatus: 'รายงานเข้าเสร็จสิ้น',
         closeShipment: 'ปิด',
         adminReview: 'ผู้ดูแลตรวจสอบ',
         reviewHint: 'บันทึกครบทุกขั้นตอนแล้ว ผู้ดูแลสามารถตรวจสอบและปิดได้',
-        shipmentUnderReview: '{id} อยู่ระหว่างตรวจสอบ',
+        shipmentReportIn: '{id} รายงานเข้าเสร็จสิ้นแล้ว',
         shipmentClosed: '{id} ถูกปิดแล้ว',
         confirmClose: 'ปิดการจัดส่ง',
+        reopenShipment: 'เปิดใหม่',
+        confirmReopen: 'เปิดการจัดส่งใหม่',
+        reopenShipmentConfirm: 'เปิดการจัดส่ง {id} ใหม่? สถานะจะถูกเปลี่ยนกลับเป็น Dispatch',
+        shipmentReopened: '{id} ถูกเปิดใหม่แล้ว',
+        cannotReopenWithSO: 'ไม่สามารถเปิดใหม่ได้: มี Sales Order แล้ว',
         startTime: 'เวลาเริ่ม',
         endTime: 'เวลาสิ้นสุด',
         adjustTime: 'ปรับเวลา',
@@ -763,6 +794,21 @@ const TRANSLATIONS = {
         settlementReportCreated: 'สร้าง Settlement Report {id} แล้ว',
         salesOrderCreated: 'สร้าง {count} sales order(s) แล้ว',
         postedToSAP: 'ส่ง {id} ไป SAP แล้ว',
+        cancelSO: 'ยกเลิก SO',
+        cancelSOTitle: 'ยกเลิก Sales Order',
+        cancelSOConfirm: 'คุณแน่ใจหรือไม่ว่าต้องการยกเลิก SO นี้?',
+        cancelReason: 'เหตุผลในการยกเลิก',
+        cancelReasonPlaceholder: 'ระบุเหตุผลในการยกเลิก...',
+        cancelReasonRequired: 'กรุณาระบุเหตุผลในการยกเลิก',
+        soCancelled: 'ยกเลิก SO {id} แล้ว',
+        soAlreadyCancelled: 'SO นี้ถูกยกเลิกแล้ว',
+        cancelled: 'ยกเลิกแล้ว',
+        vessel: 'เรือ',
+        port: 'ท่าเรือ',
+        activityOperation: 'กิจกรรม',
+        createdDate: 'วันที่สร้าง',
+        createdFrom: 'สร้างตั้งแต่',
+        createdTo: 'สร้างถึง',
     },
 };
 
@@ -826,6 +872,8 @@ function setLang(lang) {
     document.querySelector('#npm-module .nav-item[data-view="npm-shipment-list"] .nav-label').textContent = t('containerShipments');
     document.querySelector('#npm-module .nav-item[data-view="npm-eir-list"] .nav-label').textContent = t('eir');
     document.querySelector('#npm-module .nav-item[data-view="npm-inspection"] .nav-label').textContent = t('containerInspection');
+    const masterDataNav = document.querySelector('#npm-module .nav-item[data-view="npm-master-data"] .nav-label');
+    if (masterDataNav) masterDataNav.textContent = 'Master Data';
     // Re-render current views
     SCM.navigate(SCM.currentView);
     NPM.navigate(NPM.currentView);

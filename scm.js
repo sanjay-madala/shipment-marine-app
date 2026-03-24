@@ -2,7 +2,7 @@
 
 const SCM = {
     currentView: 'scm-tug-list',
-    statusFilter: 'all',
+    statusFilter: new Set(),
     siteFilter: 'all',
     dateFrom: '',
     dateTo: '',
@@ -18,14 +18,13 @@ const SCM = {
     shipDateTo: '',
     shipSearchText: '',
     shipActivityFilter: 'all',
-    shipStatusFilter: 'all',
+    shipStatusFilter: new Set(),
 
     init() {
         const today = new Date();
         const d1 = new Date(today); d1.setDate(today.getDate() - 5);
-        const d2 = new Date(today); d2.setDate(today.getDate() + 5);
         this.dateFrom = d1.toISOString().slice(0, 10);
-        this.dateTo = d2.toISOString().slice(0, 10);
+        this.dateTo = today.toISOString().slice(0, 10);
         this.shipDateFrom = this.dateFrom;
         this.shipDateTo = this.dateTo;
         this.renderTugList();
@@ -43,7 +42,7 @@ const SCM = {
     renderTugList() {
         // Apply filters
         let filtered = [...scmTugSchedules];
-        if (this.statusFilter !== 'all') filtered = filtered.filter(ts => ts.status === this.statusFilter);
+        if (this.statusFilter.size > 0) filtered = filtered.filter(ts => this.statusFilter.has(ts.status));
         if (this.siteFilter !== 'all') filtered = filtered.filter(ts => ts.site === this.siteFilter);
         if (this.dateFrom) filtered = filtered.filter(ts => ts.workDate.slice(0, 10) >= this.dateFrom);
         if (this.dateTo) filtered = filtered.filter(ts => ts.workDate.slice(0, 10) <= this.dateTo);
@@ -87,8 +86,8 @@ const SCM = {
         }
 
         const counts = { all: scmTugSchedules.length };
-        ['draft', 'open', 'dispatch', 'closed'].forEach(s => counts[s] = scmTugSchedules.filter(ts => ts.status === s).length);
-        const statusLabels = { all: t('all'), draft: t('draft'), open: t('open'), dispatch: t('dispatch'), closed: t('closed') };
+        ['draft', 'open', 'dispatch', 'review', 'closed'].forEach(s => counts[s] = scmTugSchedules.filter(ts => ts.status === s).length);
+        const statusLabels = { all: t('all'), draft: t('draft'), open: t('open'), dispatch: t('dispatch'), review: t('review'), closed: t('closed') };
 
         const th = (field, label) =>
             `<th style="cursor:pointer;user-select:none;white-space:nowrap" onclick="SCM.sortBy('${field}')">` +
@@ -108,13 +107,17 @@ const SCM = {
                 <div class="stat-card"><div class="stat-value">${counts.draft}</div><div class="stat-label">${t('draft')}</div></div>
                 <div class="stat-card"><div class="stat-value">${counts.open}</div><div class="stat-label">${t('open')}</div></div>
                 <div class="stat-card"><div class="stat-value">${counts.dispatch}</div><div class="stat-label">${t('dispatch')}</div></div>
+                <div class="stat-card"><div class="stat-value">${counts.review}</div><div class="stat-label">${t('review')}</div></div>
                 <div class="stat-card"><div class="stat-value">${counts.closed}</div><div class="stat-label">${t('closed')}</div></div>
             </div>
 
             <!-- Status filter chips -->
             <div class="filters">
-                ${['all', 'draft', 'open', 'dispatch', 'closed'].map(s => `
-                    <span class="filter-chip ${this.statusFilter === s ? 'active' : ''}" onclick="SCM.statusFilter='${s}';SCM.renderTugList()">
+                <span class="filter-chip ${this.statusFilter.size === 0 ? 'active' : ''}" onclick="SCM.statusFilter.clear();SCM.renderTugList()">
+                    ${statusLabels['all']}<span class="filter-count">${counts['all'] || 0}</span>
+                </span>
+                ${['draft', 'open', 'dispatch', 'review', 'closed'].map(s => `
+                    <span class="filter-chip ${this.statusFilter.has(s) ? 'active' : ''}" onclick="SCM._toggleStatusFilter('${s}')">
                         ${statusLabels[s]}<span class="filter-count">${counts[s] || 0}</span>
                     </span>
                 `).join('')}
@@ -135,7 +138,7 @@ const SCM = {
                     <input type="date" value="${this.dateFrom}" onchange="SCM.dateFrom=this.value;SCM.renderTugList()" style="font-size:12px;padding:4px 8px;border:1px solid var(--gray-300);border-radius:6px">
                     <span style="font-size:12px;color:var(--gray-400)">–</span>
                     <input type="date" value="${this.dateTo}" onchange="SCM.dateTo=this.value;SCM.renderTugList()" style="font-size:12px;padding:4px 8px;border:1px solid var(--gray-300);border-radius:6px">
-                    <button class="btn btn-outline btn-sm" onclick="SCM._resetDateFilter()">Today ±5</button>
+                    <button class="btn btn-outline btn-sm" onclick="SCM._resetDateFilter()">Last 5d</button>
                 </div>
                 <!-- Activity filter -->
                 <div style="display:flex;gap:6px;align-items:center">
@@ -211,10 +214,21 @@ const SCM = {
     _resetDateFilter() {
         const today = new Date();
         const d1 = new Date(today); d1.setDate(today.getDate() - 5);
-        const d2 = new Date(today); d2.setDate(today.getDate() + 5);
         this.dateFrom = d1.toISOString().slice(0, 10);
-        this.dateTo = d2.toISOString().slice(0, 10);
+        this.dateTo = today.toISOString().slice(0, 10);
         this.renderTugList();
+    },
+
+    _toggleStatusFilter(s) {
+        if (this.statusFilter.has(s)) this.statusFilter.delete(s);
+        else this.statusFilter.add(s);
+        this.renderTugList();
+    },
+
+    _toggleShipStatusFilter(s) {
+        if (this.shipStatusFilter.has(s)) this.shipStatusFilter.delete(s);
+        else this.shipStatusFilter.add(s);
+        this.renderShipmentList();
     },
 
     // ========== CREATE TUG SCHEDULE ==========
@@ -956,16 +970,15 @@ const SCM = {
     _resetShipDateFilter() {
         const today = new Date();
         const d1 = new Date(today); d1.setDate(today.getDate() - 5);
-        const d2 = new Date(today); d2.setDate(today.getDate() + 5);
         this.shipDateFrom = d1.toISOString().slice(0, 10);
-        this.shipDateTo = d2.toISOString().slice(0, 10);
+        this.shipDateTo = today.toISOString().slice(0, 10);
         this.renderShipmentList();
     },
 
     // ========== SHIPMENT LIST ==========
     renderShipmentList() {
         let filtered = [...scmShipments];
-        if (this.shipStatusFilter !== 'all') filtered = filtered.filter(s => s.status === this.shipStatusFilter);
+        if (this.shipStatusFilter.size > 0) filtered = filtered.filter(s => this.shipStatusFilter.has(s.status));
         if (this.shipSiteFilter !== 'all') filtered = filtered.filter(s => s.site === this.shipSiteFilter);
         if (this.shipDateFrom) filtered = filtered.filter(s => s.workDate.slice(0, 10) >= this.shipDateFrom);
         if (this.shipDateTo) filtered = filtered.filter(s => s.workDate.slice(0, 10) <= this.shipDateTo);
@@ -985,8 +998,8 @@ const SCM = {
         }
 
         const counts = { all: scmShipments.length };
-        ['dispatch', 'review', 'closed', 'cancelled'].forEach(s => counts[s] = scmShipments.filter(x => x.status === s).length);
-        const statusLabels = { all: t('all'), dispatch: t('dispatch'), review: t('review'), closed: t('closed'), cancelled: t('cancel') };
+        ['dispatch', 'report-in', 'closed', 'cancelled'].forEach(s => counts[s] = scmShipments.filter(x => x.status === s).length);
+        const statusLabels = { all: t('all'), dispatch: t('dispatch'), 'report-in': t('reportIn'), closed: t('closed'), cancelled: t('cancel') };
 
         document.getElementById('scm-content').innerHTML = `
             <div class="page-header">
@@ -995,15 +1008,18 @@ const SCM = {
             <div class="stats-row">
                 <div class="stat-card"><div class="stat-value">${counts.all}</div><div class="stat-label">${t('total')}</div></div>
                 <div class="stat-card"><div class="stat-value">${counts.dispatch}</div><div class="stat-label">${t('dispatch')}</div></div>
-                <div class="stat-card"><div class="stat-value">${counts.review}</div><div class="stat-label">${t('review')}</div></div>
+                <div class="stat-card"><div class="stat-value">${counts['report-in']}</div><div class="stat-label">${t('reportIn')}</div></div>
                 <div class="stat-card"><div class="stat-value">${counts.closed}</div><div class="stat-label">${t('closed')}</div></div>
                 <div class="stat-card"><div class="stat-value">${counts.cancelled}</div><div class="stat-label">Cancelled</div></div>
             </div>
 
             <!-- Status filter chips -->
             <div class="filters">
-                ${['all', 'dispatch', 'review', 'closed', 'cancelled'].map(s => `
-                    <span class="filter-chip ${this.shipStatusFilter === s ? 'active' : ''}" onclick="SCM.shipStatusFilter='${s}';SCM.renderShipmentList()">
+                <span class="filter-chip ${this.shipStatusFilter.size === 0 ? 'active' : ''}" onclick="SCM.shipStatusFilter.clear();SCM.renderShipmentList()">
+                    ${statusLabels['all']}<span class="filter-count">${counts['all'] || 0}</span>
+                </span>
+                ${['dispatch', 'report-in', 'closed', 'cancelled'].map(s => `
+                    <span class="filter-chip ${this.shipStatusFilter.has(s) ? 'active' : ''}" onclick="SCM._toggleShipStatusFilter('${s}')">
                         ${statusLabels[s]}<span class="filter-count">${counts[s] || 0}</span>
                     </span>
                 `).join('')}
@@ -1024,7 +1040,7 @@ const SCM = {
                     <input type="date" value="${this.shipDateFrom}" onchange="SCM.shipDateFrom=this.value;SCM.renderShipmentList()" style="font-size:12px;padding:4px 8px;border:1px solid var(--gray-300);border-radius:6px">
                     <span style="font-size:12px;color:var(--gray-400)">–</span>
                     <input type="date" value="${this.shipDateTo}" onchange="SCM.shipDateTo=this.value;SCM.renderShipmentList()" style="font-size:12px;padding:4px 8px;border:1px solid var(--gray-300);border-radius:6px">
-                    <button class="btn btn-outline btn-sm" onclick="SCM._resetShipDateFilter()">Today ±5</button>
+                    <button class="btn btn-outline btn-sm" onclick="SCM._resetShipDateFilter()">Last 5d</button>
                 </div>
                 <!-- Activity filter -->
                 <div style="display:flex;gap:6px;align-items:center">
@@ -1066,6 +1082,7 @@ const SCM = {
                                             <div class="action-dropdown">
                                                 <div class="action-dropdown-item" onclick="SCM.showShipmentDetail('${s.id}')">${t('view')}</div>
                                                 ${['dispatch', 'open'].includes(s.status) ? `<div class="action-dropdown-item danger" onclick="SCM.cancelShipment('${s.id}')">${t('cancel')}</div>` : ''}
+                                                ${s.status === 'closed' && !s.soNo ? `<div class="action-dropdown-item" onclick="SCM.reopenShipment('${s.id}')">${t('reopenShipment')}</div>` : ''}
                                             </div>
                                         </div>
                                     </td>
@@ -1131,6 +1148,7 @@ const SCM = {
             });
             const active = scmShipments.filter(x => x.orderId === ts.id && x.status !== 'cancelled');
             if (active.length === 0) ts.status = 'open';
+            else this._propagateTugScheduleStatus(s.orderId);
         }
         closeModal();
         showToast(`${id} cancelled`, 'success');
@@ -1144,8 +1162,9 @@ const SCM = {
         const s = scmShipments.find(x => x.id === id);
         if (!s) return;
 
-        const canReportIn = s.status === 'dispatch' || s.status === 'review' || s.status === 'closed';
-        const isReview = s.status === 'review';
+        const canReportIn = s.status === 'dispatch' || s.status === 'report-in' || s.status === 'closed';
+        const isReportIn = s.status === 'report-in';
+        const canReopen = s.status === 'closed' && !s.soNo;
 
         // Auto-initialize report-in (no need to click "Start")
         if (canReportIn && !s.reportIns) {
@@ -1173,7 +1192,8 @@ const SCM = {
                 <div class="btn-group">
                     ${statusBadge(s.status)}
                     ${['dispatch', 'open'].includes(s.status) ? `<button class="btn btn-danger" onclick="SCM.cancelShipment('${s.id}')">Cancel Shipment</button>` : ''}
-                    ${isReview ? `<button class="btn btn-primary" onclick="SCM.closeShipment('${s.id}')">${t('confirmClose')}</button>` : ''}
+                    ${isReportIn ? `<button class="btn btn-primary" onclick="SCM.closeShipment('${s.id}')">${t('confirmClose')}</button>` : ''}
+                    ${canReopen ? `<button class="btn btn-warning" onclick="SCM.reopenShipment('${s.id}')">${t('reopenShipment')}</button>` : ''}
                 </div>
             </div>
 
@@ -1276,7 +1296,7 @@ const SCM = {
         if (!ri || !ri[reportType]) return '';
         const stages = ri[reportType].stages;
         const isActual = reportType === 'actual';
-        const canRecord = s.status === 'dispatch' || s.status === 'review';
+        const canRecord = s.status === 'dispatch' || s.status === 'report-in';
 
         // Determine visible stage pairs
         const visIndices = this._getVisibleStageIndices(s.site, s.jobType.id);
@@ -1480,8 +1500,9 @@ const SCM = {
         const ri = s.reportIns;
         const actualDone = ri.actual && ri.actual.stages.find(st => st.name === 'Last')?.endTime;
         if (actualDone) {
-            s.status = 'review';
-            showToast(t('shipmentUnderReview', { id: s.id }), 'success');
+            s.status = 'report-in';
+            this._propagateTugScheduleStatus(s.orderId);
+            showToast(t('shipmentReportIn', { id: s.id }), 'success');
         } else {
             showToast(t('stageRecorded', { stage: tStage('Last'), time: formatDateTime(s.reportIns.actual.stages[7].endTime) }), 'success');
         }
@@ -1520,12 +1541,60 @@ const SCM = {
         const s = scmShipments.find(x => x.id === id);
         if (!s) return;
         s.status = 'closed';
-        const parentShipments = scmShipments.filter(sh => sh.orderId === s.orderId);
-        if (parentShipments.every(sh => sh.status === 'closed')) {
-            const ts = scmTugSchedules.find(t => t.id === s.orderId);
-            if (ts) ts.status = 'closed';
-        }
+        this._propagateTugScheduleStatus(s.orderId);
         showToast(t('shipmentClosed', { id }), 'success');
         this.showShipmentDetail(id);
+    },
+
+    reopenShipment(id) {
+        const s = scmShipments.find(x => x.id === id);
+        if (!s) return;
+        if (s.soNo) {
+            showToast(t('cannotReopenWithSO'), 'error');
+            return;
+        }
+        openModal(`
+            <div class="modal-header">
+                <h2>${t('confirmReopen')}</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="text-align:center;padding:32px">
+                <div style="font-size:40px;margin-bottom:12px">&#9888;&#65039;</div>
+                <div style="font-size:16px;font-weight:600;margin-bottom:8px">${t('reopenShipmentConfirm', { id })}</div>
+            </div>
+            <div class="modal-footer" style="justify-content:center;gap:12px">
+                <button class="btn btn-outline" onclick="closeModal()">${t('cancel')}</button>
+                <button class="btn btn-warning" onclick="SCM.confirmReopenShipment('${id}')">${t('confirmReopen')}</button>
+            </div>
+        `);
+    },
+
+    confirmReopenShipment(id) {
+        const s = scmShipments.find(x => x.id === id);
+        if (!s) return;
+        if (s.soNo) {
+            showToast(t('cannotReopenWithSO'), 'error');
+            closeModal();
+            return;
+        }
+        s.status = 'dispatch';
+        this._propagateTugScheduleStatus(s.orderId);
+        closeModal();
+        showToast(t('shipmentReopened', { id }), 'success');
+        this.showShipmentDetail(id);
+    },
+
+    _propagateTugScheduleStatus(orderId) {
+        const ts = scmTugSchedules.find(t => t.id === orderId);
+        if (!ts) return;
+        const shipments = scmShipments.filter(sh => sh.orderId === orderId && sh.status !== 'cancelled');
+        if (shipments.length === 0) return;
+        if (shipments.every(sh => sh.status === 'closed')) {
+            ts.status = 'closed';
+        } else if (shipments.every(sh => sh.status === 'report-in' || sh.status === 'closed')) {
+            ts.status = 'review';
+        } else {
+            ts.status = 'dispatch';
+        }
     },
 };

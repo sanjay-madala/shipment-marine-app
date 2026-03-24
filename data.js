@@ -97,6 +97,30 @@ const PRICE_MASTER = {
     '7SOFCHARTERHIRE1': 500000, '7SOFMANPWR000001': 50000, '7SOFMBDEMOB00001': 200000,
 };
 
+// GRT Rate Table — maps GRT ranges to rate per trip (THB)
+// Lookup: find the entry where grt >= min && grt <= max
+const GRT_RATE_TABLE = [
+    { min: 0,     max: 500,    rate: 15000 },
+    { min: 501,   max: 1000,   rate: 25000 },
+    { min: 1001,  max: 2000,   rate: 35000 },
+    { min: 2001,  max: 3000,   rate: 45000 },
+    { min: 3001,  max: 5000,   rate: 60000 },
+    { min: 5001,  max: 8000,   rate: 80000 },
+    { min: 8001,  max: 10000,  rate: 100000 },
+    { min: 10001, max: 15000,  rate: 120000 },
+    { min: 15001, max: 20000,  rate: 150000 },
+    { min: 20001, max: 30000,  rate: 180000 },
+    { min: 30001, max: 50000,  rate: 220000 },
+    { min: 50001, max: 100000, rate: 300000 },
+    { min: 100001, max: Infinity, rate: 400000 },
+];
+
+function lookupGRTRate(grt) {
+    if (!grt || grt <= 0) return 0;
+    const entry = GRT_RATE_TABLE.find(e => grt >= e.min && grt <= e.max);
+    return entry ? entry.rate : 0;
+}
+
 const MASTERS = {
     customers: [
         { id: 'C001', name: 'Thai Maritime Co., Ltd.' },
@@ -474,7 +498,87 @@ const MASTERS = {
     ],
     commodities: ['General Cargo', 'Chemicals', 'Electronics', 'Automotive Parts', 'Textiles', 'Food & Beverage', 'Machinery'],
     containerSizes: [20, 40, 45],
-    docTypes: ['E', 'F'],
+    docTypes: [
+        { id: 'EX', name: 'EX - Export' },
+        { id: 'IM', name: 'IM - Import' },
+        { id: 'DO', name: 'DO - Domestic' },
+    ],
+    // NPM Master Data
+    npmIsoCodes: [
+        { id: '22G1', name: '22G1 - 20ft GP' },
+        { id: '25G1', name: '25G1 - 20ft HC' },
+        { id: '42G1', name: '42G1 - 40ft GP' },
+        { id: '45G1', name: '45G1 - 40ft HC' },
+        { id: '22R1', name: '22R1 - 20ft Reefer' },
+        { id: '42R1', name: '42R1 - 40ft Reefer' },
+        { id: '22T1', name: '22T1 - 20ft Tank' },
+        { id: '42T1', name: '42T1 - 40ft Tank' },
+        { id: '22U1', name: '22U1 - 20ft Open Top' },
+        { id: '42U1', name: '42U1 - 40ft Open Top' },
+        { id: 'L5G1', name: 'L5G1 - 45ft HC' },
+    ],
+    npmContainerStatuses: [
+        { id: 'MTY', name: 'MTY - Empty' },
+        { id: 'FULL', name: 'FULL - Full' },
+    ],
+    npmPOL: [
+        { id: 'THBKK', name: 'THBKK - Bangkok' },
+        { id: 'THLCH', name: 'THLCH - Laem Chabang' },
+        { id: 'THMTP', name: 'THMTP - Map Ta Phut' },
+        { id: 'THSGZ', name: 'THSGZ - Songkhla' },
+        { id: 'THSRI', name: 'THSRI - Si Racha' },
+    ],
+    npmPOD: [
+        { id: 'CNSHA', name: 'CNSHA - Shanghai' },
+        { id: 'CNNBO', name: 'CNNBO - Ningbo' },
+        { id: 'SGSIN', name: 'SGSIN - Singapore' },
+        { id: 'JPYOK', name: 'JPYOK - Yokohama' },
+        { id: 'JPTYO', name: 'JPTYO - Tokyo' },
+        { id: 'HKHKG', name: 'HKHKG - Hong Kong' },
+        { id: 'KRPUS', name: 'KRPUS - Busan' },
+        { id: 'USNYC', name: 'USNYC - New York' },
+        { id: 'USLAX', name: 'USLAX - Los Angeles' },
+        { id: 'DEHAM', name: 'DEHAM - Hamburg' },
+        { id: 'NLRTM', name: 'NLRTM - Rotterdam' },
+    ],
+    npmShippers: [
+        { id: 'SH001', code: 'SH001', name: 'ABC Trading Co.' },
+        { id: 'SH002', code: 'SH002', name: 'XYZ Export Ltd.' },
+        { id: 'SH003', code: 'SH003', name: 'Thai Foods International' },
+        { id: 'SH004', code: 'SH004', name: 'Global Chem Corp.' },
+        { id: 'SH005', code: 'SH005', name: 'Auto Parts Thailand' },
+        { id: 'SH006', code: 'SH006', name: 'Machinery World Ltd.' },
+        { id: 'SH007', code: 'SH007', name: 'Sunrise Trading' },
+        { id: 'SH008', code: 'SH008', name: 'Delta Logistics' },
+    ],
+    npmForwarders: [
+        { id: 'FW001', code: 'FW001', name: 'Forward Express Co.' },
+        { id: 'FW002', code: 'FW002', name: 'Siam Freight Services' },
+        { id: 'FW003', code: 'FW003', name: 'Global Forward Ltd.' },
+        { id: 'FW004', code: 'FW004', name: 'Ocean Link Forwarding' },
+        { id: 'FW005', code: 'FW005', name: 'Thai Cargo Forward' },
+        { id: 'FW006', code: 'FW006', name: 'Asia Transport Services' },
+    ],
+    npmVoidReasons: [
+        { id: 'data_entry_error', name: 'Data entry error' },
+        { id: 'duplicate', name: 'Duplicate entry' },
+        { id: 'wrong_container', name: 'Wrong container' },
+        { id: 'customer_cancel', name: 'Customer cancelled' },
+        { id: 'system_error', name: 'System error' },
+        { id: 'other', name: 'Other (specify in notes)' },
+    ],
+    npmDamageTypes: [
+        { id: 'DENT', name: 'Dent' },
+        { id: 'HOLE', name: 'Hole' },
+        { id: 'RUST', name: 'Rust' },
+        { id: 'CRACK', name: 'Crack' },
+        { id: 'BENT', name: 'Bent' },
+        { id: 'SCRATCH', name: 'Scratch' },
+        { id: 'BROKEN', name: 'Broken' },
+        { id: 'MISSING', name: 'Missing Part' },
+        { id: 'STAIN', name: 'Stain' },
+        { id: 'LEAK', name: 'Leak' },
+    ],
 };
 
 // Helper to find service by id
@@ -1019,30 +1123,30 @@ let npmShipments = [
         wbs: '08S.26CF.NPSRT1.S001',
         site: 'BKK',
         bookings: [
-            { id: 'BK001', shipper: 'ABC Trading Co.', fw: 'FW001', bookingNo: 'BKG-2026-0001', cargo: 'Electronics', line: 'Evergreen', sts: 'F', fwRef: 'FW-REF-001', size: 40, qty: 15, stuffing: 'CY', marking: 'ABC-001', srNo: 'SR-001', docType: 'F' },
-            { id: 'BK002', shipper: 'XYZ Export Ltd.', fw: 'FW002', bookingNo: 'BKG-2026-0002', cargo: 'Textiles', line: 'COSCO', sts: 'E', fwRef: 'FW-REF-002', size: 20, qty: 10, stuffing: 'CFS', marking: 'XYZ-002', srNo: 'SR-002', docType: 'E' },
-            { id: 'BK003', shipper: 'Thai Foods International', fw: 'FW003', bookingNo: 'BKG-2026-0003', cargo: 'Food & Beverage', line: 'Maersk', sts: 'F', fwRef: 'FW-REF-003', size: 40, qty: 8, stuffing: 'CY', marking: 'TFI-003', srNo: 'SR-003', docType: 'F' },
+            { id: 'BK001', shipperCode: 'SH001', shipper: 'ABC Trading Co.', fwCode: 'FW001', fw: 'Forward Express Co.', bookingNo: 'BKG-2026-0001', cargo: 'Electronics', line: 'Evergreen', sts: 'IM', fwRef: 'FW-REF-001', size: 40, qty: 15, stuffing: 'CY', marking: 'ABC-001', srNo: 'SR-001', docType: 'IM' },
+            { id: 'BK002', shipperCode: 'SH002', shipper: 'XYZ Export Ltd.', fwCode: 'FW002', fw: 'Siam Freight Services', bookingNo: 'BKG-2026-0002', cargo: 'Textiles', line: 'COSCO', sts: 'EX', fwRef: 'FW-REF-002', size: 20, qty: 10, stuffing: 'CFS', marking: 'XYZ-002', srNo: 'SR-002', docType: 'EX' },
+            { id: 'BK003', shipperCode: 'SH003', shipper: 'Thai Foods International', fwCode: 'FW003', fw: 'Global Forward Ltd.', bookingNo: 'BKG-2026-0003', cargo: 'Food & Beverage', line: 'Maersk', sts: 'DO', fwRef: 'FW-REF-003', size: 40, qty: 8, stuffing: 'CY', marking: 'TFI-003', srNo: 'SR-003', docType: 'DO' },
         ],
         containers: [
-            { id: 'EIRU1234567', bookingNo: 'BKG-2026-0001', size: 40, type: 'GP', sealNo: 'SL-001', weight: 24500, inspected: true,
-              eirOuts: [{ id: 'CO20261', time: '2026-02-16T08:00', event: 'check-out', salesOrder: '2108123570', containerNotReturning: false, containerNotClosed: false,
+            { id: 'EIRU1234567', bookingNo: 'BKG-2026-0001', docType: 'IM', line: 'Evergreen', size: 40, type: 'GP', isoCode: '42G1', containerStatus: 'FULL', pol: 'THBKK', pod: 'CNSHA', gwt: 24500, vgm: 25000, sealNo: 'SL-001', weight: 24500, remark: '', fw: 'FW001', inspected: true, inspectionStatus: 'inspected', uploadDate: '2026-02-15T10:00',
+              eirOuts: [{ id: 'CO20261', time: '2026-02-16T08:00', event: 'check-out', containerNotReturning: false, containerNotClosed: false,
                 checkDate: '2026-02-16', checkTime: '08:00', reference: 'CO 2026 701', customerType: 'IM', lineAgent: 'Evergreen', containerStatus: 'FCL', forwarder: 'FW001', weight: '24.500', customer: 'ABC Trading Co.', commodity: 'Electronics', stuffingAt: 'CY', marking: 'ABC-001', srNo: 'SR-001',
-                shipmentNo: '80001001', itemNo: '0', truckNo: '83-0569', truckHeadPlate: '83-0569', truckTailPlate: '83-1051', officer: 'Waranee', billNo: '117089', carrier: 'ABC Transport', weighingSlipNo: '01', driverName: 'Somchai P.', driverLicense: 'DL-007890', remarks: '', status: 'completed' }],
-              eirIns: [{ id: 'CI20261', time: '2026-02-17T14:00', event: 'check-in', salesOrder: '2108123570', containerNotReturning: false, containerNotClosed: false,
+                shipmentNo: '80001001', itemNo: '0', truckNo: '83-0569', truckHeadPlate: '83-0569', truckTailPlate: '83-1051', officer: 'Waranee', billNo: '117089', carrier: 'ABC Transport', weighingSlipNo: '01', driverName: 'Somchai P.', remarks: '', status: 'completed' }],
+              eirIns: [{ id: 'CI20261', time: '2026-02-17T14:00', event: 'check-in', containerNotReturning: false, containerNotClosed: false,
                 checkDate: '2026-02-17', checkTime: '14:00', reference: 'CO 2026 702', customerType: 'IM', lineAgent: 'Evergreen', containerStatus: 'FCL', forwarder: 'FW001', weight: '24.500', customer: 'ABC Trading Co.', commodity: 'Electronics', stuffingAt: 'CY', marking: 'ABC-001', srNo: 'SR-001',
-                shipmentNo: '80001001', itemNo: '0', truckNo: '83-0569', truckHeadPlate: '83-0569', truckTailPlate: '83-1051', officer: 'Waranee', billNo: '117090', carrier: 'ABC Transport', weighingSlipNo: '02', driverName: 'Somchai P.', driverLicense: 'DL-007890', remarks: '', status: 'completed' }]},
-            { id: 'CSQU7654321', bookingNo: 'BKG-2026-0001', size: 40, type: 'GP', sealNo: 'SL-002', weight: 22100, inspected: true,
-              eirOuts: [{ id: 'CO20262', time: '2026-02-16T10:30', event: 'check-out', salesOrder: '2108123571', containerNotReturning: false, containerNotClosed: false,
+                shipmentNo: '80001001', itemNo: '0', truckNo: '83-0569', truckHeadPlate: '83-0569', truckTailPlate: '83-1051', officer: 'Waranee', billNo: '117090', carrier: 'ABC Transport', weighingSlipNo: '02', driverName: 'Somchai P.', remarks: '', status: 'completed' }]},
+            { id: 'CSQU7654321', bookingNo: 'BKG-2026-0001', docType: 'IM', line: 'Evergreen', size: 40, type: 'GP', isoCode: '42G1', containerStatus: 'FULL', pol: 'THBKK', pod: 'SGSIN', gwt: 22100, vgm: 22500, sealNo: 'SL-002', weight: 22100, remark: '', fw: 'FW001', inspected: true, inspectionStatus: 'inspected', uploadDate: '2026-02-15T10:00',
+              eirOuts: [{ id: 'CO20262', time: '2026-02-16T10:30', event: 'check-out', containerNotReturning: false, containerNotClosed: false,
                 checkDate: '2026-02-16', checkTime: '10:30', reference: 'CO 2026 703', customerType: 'IM', lineAgent: 'Evergreen', containerStatus: 'FCL', forwarder: 'FW001', weight: '22.100', customer: 'ABC Trading Co.', commodity: 'Electronics', stuffingAt: 'CY', marking: 'ABC-001', srNo: 'SR-001',
-                shipmentNo: '80001002', itemNo: '0', truckNo: '72-4321', truckHeadPlate: '72-4321', truckTailPlate: '72-4322', officer: 'Pranee', billNo: '117091', carrier: 'Fast Logistics', weighingSlipNo: '01', driverName: 'Prasert K.', driverLicense: 'DL-004321', remarks: '', status: 'completed' }],
+                shipmentNo: '80001002', itemNo: '0', truckNo: '72-4321', truckHeadPlate: '72-4321', truckTailPlate: '72-4322', officer: 'Pranee', billNo: '117091', carrier: 'Fast Logistics', weighingSlipNo: '01', driverName: 'Prasert K.', remarks: '', status: 'completed' }],
               eirIns: [] },
-            { id: 'MSKU9876543', bookingNo: 'BKG-2026-0002', size: 20, type: 'GP', sealNo: 'SL-003', weight: 18200, inspected: false, eirOuts: [], eirIns: [] },
-            { id: 'OOLU3456789', bookingNo: 'BKG-2026-0003', size: 40, type: 'RF', sealNo: 'SL-004', weight: 26800, inspected: true,
-              eirOuts: [{ id: 'CO20263', time: '2026-02-16T14:00', event: 'check-out', salesOrder: '2108123572', containerNotReturning: false, containerNotClosed: false,
-                checkDate: '2026-02-16', checkTime: '14:00', reference: 'CO 2026 704', customerType: 'IM', lineAgent: 'Maersk', containerStatus: 'FCL', forwarder: 'FW003', weight: '26.800', customer: 'Thai Foods International', commodity: 'Food & Beverage', stuffingAt: 'CY', marking: 'TFI-003', srNo: 'SR-003',
-                shipmentNo: '80001003', itemNo: '0', truckNo: '91-5678', truckHeadPlate: '91-5678', truckTailPlate: '91-5679', officer: 'Somporn', billNo: '117092', carrier: 'MTP Hauling', weighingSlipNo: '01', driverName: 'Wichai S.', driverLicense: 'DL-009012', remarks: '', status: 'completed' }],
+            { id: 'MSKU9876543', bookingNo: 'BKG-2026-0002', docType: 'EX', line: 'COSCO', size: 20, type: 'GP', isoCode: '22G1', containerStatus: 'MTY', pol: 'THLCH', pod: 'JPYOK', gwt: 18200, vgm: 18600, sealNo: 'SL-003', weight: 18200, remark: '', fw: 'FW002', inspected: false, inspectionStatus: 'pending', uploadDate: '2026-02-15T11:00', eirOuts: [], eirIns: [] },
+            { id: 'OOLU3456789', bookingNo: 'BKG-2026-0003', docType: 'DO', line: 'Maersk', size: 40, type: 'RF', isoCode: '42R1', containerStatus: 'FULL', pol: 'THBKK', pod: 'THBKK', gwt: 26800, vgm: 27200, sealNo: 'SL-004', weight: 26800, remark: '', fw: 'FW003', inspected: true, inspectionStatus: 'inspected', uploadDate: '2026-02-15T11:00',
+              eirOuts: [{ id: 'CO20263', time: '2026-02-16T14:00', event: 'check-out', containerNotReturning: false, containerNotClosed: false,
+                checkDate: '2026-02-16', checkTime: '14:00', reference: 'CO 2026 704', customerType: 'DO', lineAgent: 'Maersk', containerStatus: 'FCL', forwarder: 'FW003', weight: '26.800', customer: 'Thai Foods International', commodity: 'Food & Beverage', stuffingAt: 'CY', marking: 'TFI-003', srNo: 'SR-003',
+                shipmentNo: '80001003', itemNo: '0', truckNo: '91-5678', truckHeadPlate: '91-5678', truckTailPlate: '91-5679', officer: 'Somporn', billNo: '117092', carrier: 'MTP Hauling', weighingSlipNo: '01', driverName: 'Wichai S.', remarks: '', status: 'completed' }],
               eirIns: [] },
-            { id: 'TCLU5551234', bookingNo: 'BKG-NOMATCH', size: 20, type: 'GP', sealNo: 'SL-005', weight: 15000, inspected: false, eirOuts: [], eirIns: [] },
+            { id: 'TCLU5551234', bookingNo: 'BKG-NOMATCH', docType: 'EX', line: 'ONE', size: 20, type: 'GP', isoCode: '22G1', containerStatus: 'MTY', pol: 'THLCH', pod: 'HKHKG', gwt: 15000, vgm: 15400, sealNo: 'SL-005', weight: 15000, remark: '', fw: 'FW005', inspected: false, inspectionStatus: 'pending', uploadDate: '2026-02-15T12:00', eirOuts: [], eirIns: [] },
         ],
     },
     {
@@ -1054,8 +1158,8 @@ let npmShipments = [
         wbs: '08S.26CF.NPSRT1.S002',
         site: 'BKK',
         bookings: [
-            { id: 'BK004', shipper: 'Global Chem Corp.', fw: 'FW004', bookingNo: 'BKG-2026-0004', cargo: 'Chemicals', line: 'MSC', sts: 'E', fwRef: 'FW-REF-004', size: 20, qty: 20, stuffing: 'CY', marking: 'GCC-004', srNo: 'SR-004', docType: 'E' },
-            { id: 'BK005', shipper: 'Auto Parts Thailand', fw: 'FW005', bookingNo: 'BKG-2026-0005', cargo: 'Automotive Parts', line: 'ONE', sts: 'F', fwRef: 'FW-REF-005', size: 40, qty: 12, stuffing: 'CFS', marking: 'APT-005', srNo: 'SR-005', docType: 'F' },
+            { id: 'BK004', shipperCode: 'SH004', shipper: 'Global Chem Corp.', fwCode: 'FW004', fw: 'Ocean Link Forwarding', bookingNo: 'BKG-2026-0004', cargo: 'Chemicals', line: 'MSC', sts: 'EX', fwRef: 'FW-REF-004', size: 20, qty: 20, stuffing: 'CY', marking: 'GCC-004', srNo: 'SR-004', docType: 'EX' },
+            { id: 'BK005', shipperCode: 'SH005', shipper: 'Auto Parts Thailand', fwCode: 'FW005', fw: 'Thai Cargo Forward', bookingNo: 'BKG-2026-0005', cargo: 'Automotive Parts', line: 'ONE', sts: 'IM', fwRef: 'FW-REF-005', size: 40, qty: 12, stuffing: 'CFS', marking: 'APT-005', srNo: 'SR-005', docType: 'IM' },
         ],
         containers: [],
     },
@@ -1068,7 +1172,7 @@ let npmShipments = [
         wbs: '08S.26CF.NPSRT1.S003',
         site: 'MTP',
         bookings: [
-            { id: 'BK006', shipper: 'Machinery World Ltd.', fw: 'FW006', bookingNo: 'BKG-2026-0006', cargo: 'Machinery', line: 'Evergreen', sts: 'F', fwRef: 'FW-REF-006', size: 40, qty: 5, stuffing: 'CY', marking: 'MWL-006', srNo: 'SR-006', docType: 'F' },
+            { id: 'BK006', shipperCode: 'SH006', shipper: 'Machinery World Ltd.', fwCode: 'FW006', fw: 'Asia Transport Services', bookingNo: 'BKG-2026-0006', cargo: 'Machinery', line: 'Evergreen', sts: 'IM', fwRef: 'FW-REF-006', size: 40, qty: 5, stuffing: 'CY', marking: 'MWL-006', srNo: 'SR-006', docType: 'IM' },
         ],
         containers: [],
     },
@@ -1090,6 +1194,67 @@ const INSPECTION_CHECKLIST = [
     { id: 'CHK13', label: 'Markings - CSC Plate', category: 'Markings' },
     { id: 'CHK14', label: 'Markings - Container Number', category: 'Markings' },
 ];
+
+// Position-based inspection positions
+const INSPECTION_POSITIONS = {
+    Exterior: [
+        { id: 'E-F1', label: 'Front 1', code: 'F1' },
+        { id: 'E-F2', label: 'Front 2', code: 'F2' },
+        { id: 'E-B1', label: 'Back 1', code: 'B1' },
+        { id: 'E-B2', label: 'Back 2', code: 'B2' },
+        { id: 'E-T1', label: 'Top 1', code: 'T1' },
+        { id: 'E-T2', label: 'Top 2', code: 'T2' },
+        { id: 'E-T3', label: 'Top 3', code: 'T3' },
+        { id: 'E-T4', label: 'Top 4', code: 'T4' },
+        { id: 'E-T5', label: 'Top 5', code: 'T5' },
+        { id: 'E-U1', label: 'Under 1', code: 'U1' },
+        { id: 'E-U2', label: 'Under 2', code: 'U2' },
+        { id: 'E-U3', label: 'Under 3', code: 'U3' },
+        { id: 'E-U4', label: 'Under 4', code: 'U4' },
+        { id: 'E-U5', label: 'Under 5', code: 'U5' },
+        { id: 'E-L1', label: 'Left 1', code: 'L1' },
+        { id: 'E-L2', label: 'Left 2', code: 'L2' },
+        { id: 'E-L3', label: 'Left 3', code: 'L3' },
+        { id: 'E-L4', label: 'Left 4', code: 'L4' },
+        { id: 'E-L5', label: 'Left 5', code: 'L5' },
+        { id: 'E-R1', label: 'Right 1', code: 'R1' },
+        { id: 'E-R2', label: 'Right 2', code: 'R2' },
+        { id: 'E-R3', label: 'Right 3', code: 'R3' },
+        { id: 'E-R4', label: 'Right 4', code: 'R4' },
+        { id: 'E-R5', label: 'Right 5', code: 'R5' },
+    ],
+    Interior: [
+        { id: 'I-F1', label: 'Front 1', code: 'F1' },
+        { id: 'I-F2', label: 'Front 2', code: 'F2' },
+        { id: 'I-B1', label: 'Back 1', code: 'B1' },
+        { id: 'I-B2', label: 'Back 2', code: 'B2' },
+        { id: 'I-T1', label: 'Top 1', code: 'T1' },
+        { id: 'I-T2', label: 'Top 2', code: 'T2' },
+        { id: 'I-T3', label: 'Top 3', code: 'T3' },
+        { id: 'I-T4', label: 'Top 4', code: 'T4' },
+        { id: 'I-T5', label: 'Top 5', code: 'T5' },
+        { id: 'I-U1', label: 'Under 1', code: 'U1' },
+        { id: 'I-U2', label: 'Under 2', code: 'U2' },
+        { id: 'I-U3', label: 'Under 3', code: 'U3' },
+        { id: 'I-U4', label: 'Under 4', code: 'U4' },
+        { id: 'I-U5', label: 'Under 5', code: 'U5' },
+        { id: 'I-L1', label: 'Left 1', code: 'L1' },
+        { id: 'I-L2', label: 'Left 2', code: 'L2' },
+        { id: 'I-L3', label: 'Left 3', code: 'L3' },
+        { id: 'I-L4', label: 'Left 4', code: 'L4' },
+        { id: 'I-L5', label: 'Left 5', code: 'L5' },
+        { id: 'I-R1', label: 'Right 1', code: 'R1' },
+        { id: 'I-R2', label: 'Right 2', code: 'R2' },
+        { id: 'I-R3', label: 'Right 3', code: 'R3' },
+        { id: 'I-R4', label: 'Right 4', code: 'R4' },
+        { id: 'I-R5', label: 'Right 5', code: 'R5' },
+    ],
+};
+
+// NPM Settings
+let npmSettings = {
+    bypassInspection: false,
+};
 
 let containerInspections = {
     'EIRU1234567': { completedAt: '2026-02-16T07:30', inspector: 'Anon T.', items: INSPECTION_CHECKLIST.map(c => ({ ...c, ok: true, note: '' })) },
