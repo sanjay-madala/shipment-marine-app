@@ -146,8 +146,10 @@ function scmOnVesselChangeSS(vesselId) {
     const v = MASTERS.vessels.find(x => x.id === vesselId);
     const grtEl = document.getElementById('f-grt');
     const loaEl = document.getElementById('f-loa');
+    const draftEl = document.getElementById('f-draft');
     if (grtEl) grtEl.value = v ? v.grt.toLocaleString() : '';
     if (loaEl) loaEl.value = v ? v.loa + ' m' : '';
+    if (draftEl) draftEl.value = v ? v.draft + ' m' : '';
 }
 
 function scmOnSiteChange(site) {

@@ -21,10 +21,10 @@ const SCM = {
     shipStatusFilter: new Set(),
 
     init() {
-        const today = new Date();
-        const d1 = new Date(today); d1.setDate(today.getDate() - 5);
+        const todayStr = todayBKK();
+        const d1 = new Date(todayStr); d1.setDate(d1.getDate() - 5);
         this.dateFrom = d1.toISOString().slice(0, 10);
-        this.dateTo = today.toISOString().slice(0, 10);
+        this.dateTo = todayStr;
         this.shipDateFrom = this.dateFrom;
         this.shipDateTo = this.dateTo;
         this.renderTugList();
@@ -69,6 +69,7 @@ const SCM = {
                 vessel: ts => ts.vessel.name,
                 grt: ts => ts.vessel.grt,
                 loa: ts => ts.vessel.loa,
+                draft: ts => ts.vessel.draft,
                 port: ts => ts.port.name,
                 activity: ts => ts.activity.name,
                 workDate: ts => ts.workDate,
@@ -167,6 +168,7 @@ const SCM = {
                             ${th('vessel', t('vessel'))}
                             ${th('grt', t('grt'))}
                             ${th('loa', t('loa'))}
+                            ${th('draft', t('draftM'))}
                             ${th('port', t('port'))}
                             ${th('activity', t('activity'))}
                             ${th('workDate', t('workDate'))}
@@ -190,6 +192,7 @@ const SCM = {
                                     <td>${ts.vessel.name}</td>
                                     <td style="text-align:right">${ts.vessel.grt.toLocaleString()}</td>
                                     <td style="text-align:right">${ts.vessel.loa} m</td>
+                                    <td style="text-align:right">${ts.vessel.draft} m</td>
                                     <td>${ts.port.name}</td>
                                     <td>${ts.activity.name}</td>
                                     <td>${formatDateTime(ts.workDate)}</td>
@@ -212,10 +215,10 @@ const SCM = {
     },
 
     _resetDateFilter() {
-        const today = new Date();
-        const d1 = new Date(today); d1.setDate(today.getDate() - 5);
+        const todayStr = todayBKK();
+        const d1 = new Date(todayStr); d1.setDate(d1.getDate() - 5);
         this.dateFrom = d1.toISOString().slice(0, 10);
-        this.dateTo = today.toISOString().slice(0, 10);
+        this.dateTo = todayStr;
         this.renderTugList();
     },
 
@@ -271,6 +274,10 @@ const SCM = {
                         <input id="f-loa" type="text" disabled placeholder="${t('autoFromVessel')}">
                     </div>
                     <div class="form-group">
+                        <label>${t('draftM')}</label>
+                        <input id="f-draft" type="text" disabled placeholder="${t('autoFromVessel')}">
+                    </div>
+                    <div class="form-group">
                         <label>${t('jobType')} <span class="req">*</span></label>
                         <select id="f-jobtype">${MASTERS.jobTypes.map(j => `<option value="${j.id}">${j.id} — ${j.name}</option>`).join('')}</select>
                     </div>
@@ -288,7 +295,7 @@ const SCM = {
                     </div>
                     <div class="form-group">
                         <label>${t('workDateTime')} <span class="req">*</span></label>
-                        <input id="f-workdate" type="datetime-local" value="${new Date().toISOString().slice(0,16)}">
+                        <input id="f-workdate" type="datetime-local" value="${nowBKK16()}">
                     </div>
                     <div class="form-group">
                         <label>${t('pilotMaster')}</label>
@@ -318,7 +325,7 @@ const SCM = {
         const service = MASTERS.services.find(s => s.id === serviceId);
 
         const ts = {
-            id: generateId('TS', scmTugSchedules),
+            id: generateTugId(document.getElementById('f-site').value, scmTugSchedules),
             status: 'open',
             agent: MASTERS.customers.find(c => c.id === agentId),
             site: document.getElementById('f-site').value,
@@ -331,7 +338,7 @@ const SCM = {
             service: service,
             pilot: document.getElementById('f-pilot').value,
             bomItems: service.items.map(item => ({ ...item, tug: null, wbs: '' })),
-            createdAt: new Date().toISOString(),
+            createdAt: nowBKK(),
         };
         scmTugSchedules.unshift(ts);
         closeModal();
@@ -350,7 +357,7 @@ const SCM = {
 
     // ========== DOWNLOAD TEMPLATE ==========
     downloadTemplate() {
-        const headers = ['Status', 'Agent / Owner', 'Vessel', 'GRT', 'LOA', 'Port', 'Activity Operation', 'Work Date', 'Work Time', 'Pilot / Master', 'Site'];
+        const headers = ['Status', 'Agent / Owner', 'Vessel', 'GRT', 'LOA', 'Draft(M)', 'Port', 'Activity Operation', 'Work Date', 'Work Time', 'Pilot / Master', 'Site'];
         const sampleRows = [
             ['Draft', 'Bangkok Shipping Group', 'MV BANGKOK GLORY', '8700', '118.6', 'BKK-TUG', 'Berth', '2026-03-15', '08:00', 'Capt. Suthep', 'BKK'],
             ['Open', 'Siam Ocean Transport', 'MV THAI SPIRIT', '15200', '162.8', 'MITPORT', 'Towing', '2026-03-16', '14:00', 'Capt. Wichai', 'MTP'],
@@ -446,8 +453,8 @@ const SCM = {
         const isDispatched = ts.status === 'dispatch';
         const canEdit = isDraft || isOpen;
         const canAssignTugs = isOpen;
-        const canDispatch = isOpen && ts.bomItems.filter(b => b.desc !== 'Standby Charge').every(b => b.tug);
-        const unshippedItems = ts.bomItems.filter(b => !b.shipmentId && b.tug);
+        const canDispatch = isOpen && ts.bomItems.every(b => b.tug);
+        const unshippedItems = ts.bomItems.filter(b => !b.shipmentId && b.tug && b.returnedFromCancel);
         const canRedispatch = isDispatched && unshippedItems.length > 0;
         const siteTugs = getTugsForSite(ts.site);
 
@@ -478,6 +485,7 @@ const SCM = {
                         <div class="info-item"><label>${t('vessel')}</label><div class="value">${ts.vessel.name}</div></div>
                         <div class="info-item"><label>${t('grt')}</label><div class="value">${ts.vessel.grt.toLocaleString()}</div></div>
                         <div class="info-item"><label>${t('loa')}</label><div class="value">${ts.vessel.loa} m</div></div>
+                        <div class="info-item"><label>${t('draftM')}</label><div class="value">${ts.vessel.draft} m</div></div>
                         <div class="info-item"><label>${t('port')}</label><div class="value">${ts.port.name}</div></div>
                         <div class="info-item"><label>${t('jobType')}</label><div class="value">${ts.jobType.id} — ${ts.jobType.name}</div></div>
                         <div class="info-item"><label>${t('scope')}</label><div class="value">${ts.scope}</div></div>
@@ -492,8 +500,10 @@ const SCM = {
             ${(() => {
                 const shippedItems = ts.bomItems.map((item, idx) => ({ ...item, _idx: idx })).filter(i => i.shipmentId);
                 const freeItems = ts.bomItems.map((item, idx) => ({ ...item, _idx: idx })).filter(i => !i.shipmentId);
-                const hasBoth = isDispatched && shippedItems.length > 0 && freeItems.length > 0;
-                const showFreeTable = canEdit || freeItems.length > 0;
+                const returnedItems = freeItems.filter(i => i.returnedFromCancel);
+                // For dispatched: only show returned-from-cancel items as pending; for draft/open: show all free items
+                const pendingItems = isDispatched ? returnedItems : freeItems;
+                const showFreeTable = canEdit || pendingItems.length > 0;
 
                 // Shipped items table (read-only)
                 const shippedTable = shippedItems.length > 0 ? `
@@ -532,14 +542,14 @@ const SCM = {
                 const freeTable = (showFreeTable || canEdit) ? `
                     <div class="card">
                         <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
-                            <h3>${shippedItems.length > 0 ? 'Sales BOM Items — Pending' : t('tugAssignment')}</h3>
+                            <h3>${isDispatched ? 'Sales BOM Items — Pending (Returned)' : t('tugAssignment')}</h3>
                             <div style="display:flex;gap:8px;align-items:center">
                                 ${showEditCols ? `<button class="btn btn-outline btn-sm" onclick="SCM.addBomItem('${ts.id}')">+ Add Item</button>` : ''}
                                 ${canAssignTugs ? `<span style="font-size:12px;color:var(--gray-500)">${t('assignTugsHint')}</span>` : ''}
                             </div>
                         </div>
                         <div class="card-body">
-                            ${freeItems.length > 0 ? `<table>
+                            ${pendingItems.length > 0 ? `<table>
                                 <thead><tr>
                                     <th>#</th>
                                     ${showEditCols ? '<th style="width:40px">Split</th>' : ''}
@@ -552,11 +562,10 @@ const SCM = {
                                     ${showEditCols ? '<th></th>' : ''}
                                 </tr></thead>
                                 <tbody>
-                                    ${freeItems.map((item, i) => {
+                                    ${pendingItems.map((item, i) => {
                                         const idx = item._idx;
-                                        const needsTug = item.desc !== 'Standby Charge';
                                         const itemEditable = canEdit || (isDispatched);
-                                        const itemCanAssignTug = (canAssignTugs || isDispatched) && needsTug;
+                                        const itemCanAssignTug = canAssignTugs || isDispatched;
                                         return `<tr>
                                             <td>${i + 1}</td>
                                             ${showEditCols ? `<td style="text-align:center"><input type="checkbox" ${item.splitShipment ? 'checked' : ''} onchange="SCM.toggleSplit('${ts.id}',${idx},this.checked)"></td>` : ''}
@@ -575,7 +584,7 @@ const SCM = {
                                                     <option value="">${t('selectTug')}</option>
                                                     ${siteTugs.map(tb => `<option value="${tb.id}" ${item.tug && item.tug.id === tb.id ? 'selected' : ''}>${tb.name}</option>`).join('')}
                                                 </select>
-                                            ` : item.tug ? item.tug.name : (needsTug ? `<span style="color:var(--gray-400)">${t('notAssigned')}</span>` : `<span style="color:var(--gray-400)">${t('na')}</span>`)}</td>
+                                            ` : item.tug ? item.tug.name : `<span style="color:var(--gray-400)">${t('notAssigned')}</span>`}</td>
                                             <td style="font-family:monospace;font-size:12px">${item.wbs || '-'}</td>
                                             ${showEditCols ? `<td><button class="btn btn-danger btn-sm" onclick="SCM.deleteBomItem('${ts.id}',${idx})" title="${t('delete')}">✕</button></td>` : ''}
                                         </tr>`;
@@ -674,7 +683,10 @@ const SCM = {
             if (!ship) return;
             ship.status = 'cancelled';
             ts.bomItems.forEach(item => {
-                if (item.shipmentId === shipId) item.shipmentId = '';
+                if (item.shipmentId === shipId) {
+                    item.shipmentId = '';
+                    item.returnedFromCancel = true;
+                }
             });
         });
 
@@ -875,23 +887,22 @@ const SCM = {
         const ts = scmTugSchedules.find(t => t.id === id);
         if (!ts) return;
         ts.status = 'dispatch';
-        const comPlant = ts.site === 'BKK' ? '1101' : '1102';
 
-        // Group adjacent items by WBS; splitShipment items always get their own shipment
+        // Group adjacent items by tug; splitShipment items always get their own shipment
         const groups = [];
         ts.bomItems.forEach(item => {
-            if (!item.tug && !item.wbs) return;
+            if (!item.tug) return;
             const lastGroup = groups.length ? groups[groups.length - 1] : null;
-            if (!item.splitShipment && lastGroup && !lastGroup.split && item.wbs && item.wbs === lastGroup.wbs) {
+            const tugId = item.tug.id;
+            if (!item.splitShipment && lastGroup && !lastGroup.split && lastGroup.tugId === tugId) {
                 lastGroup.items.push(item);
             } else {
-                groups.push({ wbs: item.wbs, split: !!item.splitShipment, items: [item] });
+                groups.push({ tugId, wbs: item.wbs, split: !!item.splitShipment, items: [item] });
             }
         });
 
         groups.forEach(group => {
-            const shipNum = scmShipments.length + 1;
-            const shipId = `SH-${comPlant}.26.${String(shipNum).padStart(4, '0')}`;
+            const shipId = generateShipmentId(ts.site, scmShipments);
             // Tag each item with shipmentId
             group.items.forEach(item => { item.shipmentId = shipId; });
             scmShipments.push({
@@ -921,28 +932,27 @@ const SCM = {
     redispatch(id) {
         const ts = scmTugSchedules.find(t => t.id === id);
         if (!ts) return;
-        const comPlant = ts.site === 'BKK' ? '1101' : '1102';
 
-        // Only process items that have tug assigned but no active shipment
-        const unshipped = ts.bomItems.filter(b => !b.shipmentId && b.tug);
+        // Only process items returned from cancelled shipments
+        const unshipped = ts.bomItems.filter(b => !b.shipmentId && b.tug && b.returnedFromCancel);
         if (!unshipped.length) return;
 
-        // Group adjacent unshipped items by WBS
+        // Group adjacent unshipped items by tug
         const groups = [];
         unshipped.forEach(item => {
             const lastGroup = groups.length ? groups[groups.length - 1] : null;
-            if (!item.splitShipment && lastGroup && !lastGroup.split && item.wbs && item.wbs === lastGroup.wbs) {
+            const tugId = item.tug.id;
+            if (!item.splitShipment && lastGroup && !lastGroup.split && lastGroup.tugId === tugId) {
                 lastGroup.items.push(item);
             } else {
-                groups.push({ wbs: item.wbs, split: !!item.splitShipment, items: [item] });
+                groups.push({ tugId, wbs: item.wbs, split: !!item.splitShipment, items: [item] });
             }
         });
 
         let newCount = 0;
         groups.forEach(group => {
-            const shipNum = scmShipments.length + 1;
-            const shipId = `SH-${comPlant}.26.${String(shipNum).padStart(4, '0')}`;
-            group.items.forEach(item => { item.shipmentId = shipId; });
+            const shipId = generateShipmentId(ts.site, scmShipments);
+            group.items.forEach(item => { item.shipmentId = shipId; delete item.returnedFromCancel; });
             scmShipments.push({
                 id: shipId,
                 orderId: ts.id,
@@ -968,10 +978,10 @@ const SCM = {
     },
 
     _resetShipDateFilter() {
-        const today = new Date();
-        const d1 = new Date(today); d1.setDate(today.getDate() - 5);
+        const todayStr = todayBKK();
+        const d1 = new Date(todayStr); d1.setDate(d1.getDate() - 5);
         this.shipDateFrom = d1.toISOString().slice(0, 10);
-        this.shipDateTo = today.toISOString().slice(0, 10);
+        this.shipDateTo = todayStr;
         this.renderShipmentList();
     },
 
@@ -1129,12 +1139,20 @@ const SCM = {
         const s = scmShipments.find(x => x.id === id);
         if (!s) return;
         s[field] = value;
-        // Auto-sync: when confirmDate changes, update reportInDate if not manually set
-        if (field === 'confirmDate' && !s._reportInManual) {
-            s.reportInDate = value;
+        // Auto-sync: when confirmDate changes, update report-in stage dates if not manually edited
+        if (field === 'confirmDate' && s.reportIns && !s._reportInManual) {
+            const newDefault = value + 'T00:00';
+            ['actual', 'billing'].forEach(type => {
+                if (!s.reportIns[type]) return;
+                s.reportIns[type].stages.forEach(st => {
+                    if (st.startTime === 'skipped') return;
+                    // Only update if the date portion matches the old default (not manually changed)
+                    if (st.startTime && st.startTime.endsWith('T00:00')) st.startTime = newDefault;
+                    if (st.endTime && st.endTime.endsWith('T00:00')) st.endTime = newDefault;
+                });
+            });
             this.showShipmentDetail(id);
         }
-        if (field === 'reportInDate') s._reportInManual = true;
     },
 
     confirmCancelShipment(id) {
@@ -1168,10 +1186,11 @@ const SCM = {
 
         // Auto-initialize report-in (no need to click "Start")
         if (canReportIn && !s.reportIns) {
+            const defaultDate = (s.confirmDate || todayBKK()) + 'T00:00';
             s.reportIns = {};
-            s.reportIns.actual = { stages: makeEmptyStages(), confirmedAt: '' };
+            s.reportIns.actual = { stages: makeEmptyStages(defaultDate), confirmedAt: '' };
             s.reportIns.billing = {
-                stages: makeEmptyStages().map(st => ({ ...st, overrideStart: false, overrideEnd: false })),
+                stages: makeEmptyStages(defaultDate).map(st => ({ ...st, overrideStart: false, overrideEnd: false })),
                 confirmedAt: '',
             };
         }
@@ -1214,17 +1233,17 @@ const SCM = {
                         <div class="info-item">
                             <label>Confirm Date</label>
                             <div class="value">
-                                <input type="date" value="${s.confirmDate || new Date().toISOString().slice(0,10)}"
+                                ${s.status === 'closed' ? `<span>${formatDate(s.confirmDate || todayBKK())}</span>` : `<input type="date" value="${s.confirmDate || todayBKK()}"
                                     onchange="SCM.updateShipmentField('${s.id}','confirmDate',this.value)"
-                                    style="font-size:14px;padding:4px 8px;border:1px solid var(--gray-300);border-radius:6px">
+                                    style="font-size:14px;padding:4px 8px;border:1px solid var(--gray-300);border-radius:6px">`}
                             </div>
                         </div>
-                        <div class="info-item" style="grid-column:1/-1">
+                        <div class="info-item">
                             <label>Remark</label>
                             <div class="value">
-                                <textarea rows="2" placeholder="Enter remark..."
+                                <input type="text" placeholder="Enter remark..." value="${(s.remark || '').replace(/"/g,'&quot;')}"
                                     onchange="SCM.updateShipmentField('${s.id}','remark',this.value)"
-                                    style="font-size:13px;width:100%;padding:8px 10px;border:1px solid var(--gray-300);border-radius:6px;resize:vertical">${(s.remark || '').replace(/</g,'&lt;')}</textarea>
+                                    style="font-size:13px;width:100%;padding:6px 10px;border:1px solid var(--gray-300);border-radius:6px">
                             </div>
                         </div>
                     </div>
@@ -1268,7 +1287,7 @@ const SCM = {
         if (this._mtpHOExtraPairs < 2) this._mtpHOExtraPairs++;
         const activeEl = document.querySelector('.detail-title');
         if (activeEl) {
-            const match = activeEl.textContent.match(/SH-[\w.]+/);
+            const match = activeEl.textContent.match(/\d{12}/);
             if (match) this.showShipmentDetail(match[0]);
         }
     },
@@ -1277,7 +1296,7 @@ const SCM = {
         if (this._mtpHOExtraPairs > 0) this._mtpHOExtraPairs--;
         const activeEl = document.querySelector('.detail-title');
         if (activeEl) {
-            const match = activeEl.textContent.match(/SH-[\w.]+/);
+            const match = activeEl.textContent.match(/\d{12}/);
             if (match) this.showShipmentDetail(match[0]);
         }
     },
@@ -1410,17 +1429,6 @@ const SCM = {
                     <span>${isActual ? '⏱' : '💰'}</span><span>${totalStr}</span>
                 </div>
             </div>
-            ${lastStageComplete ? `
-                <div style="margin:0 24px 16px;padding:12px 16px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:6px">
-                    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-                        <label style="font-size:12px;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:.3px;white-space:nowrap">Confirm Date</label>
-                        <input type="datetime-local" value="${confirmedAt}"
-                            onchange="SCM.confirmReport('${s.id}','${reportType}',this.value)"
-                            style="font-size:13px;padding:5px 10px;border:1px solid var(--gray-300);border-radius:6px">
-                        ${confirmedAt ? `<span style="color:var(--success);font-size:13px;font-weight:600">&#10003; Confirmed ${formatDateTime(confirmedAt)}</span>` : ''}
-                    </div>
-                </div>
-            ` : ''}
         `;
     },
 
@@ -1441,6 +1449,7 @@ const SCM = {
     setStageTime(shipId, type, idx, field, value) {
         const s = scmShipments.find(x => x.id === shipId);
         if (!s || !s.reportIns || !s.reportIns[type]) return;
+        s._reportInManual = true;
         const stage = s.reportIns[type].stages[idx];
         if (field === 'start') stage.startTime = value;
         else stage.endTime = value;
@@ -1467,9 +1476,10 @@ const SCM = {
     recordNow(shipId, type, idx, field) {
         const s = scmShipments.find(x => x.id === shipId);
         if (!s || !s.reportIns || !s.reportIns[type]) return;
+        s._reportInManual = true;
         const stage = s.reportIns[type].stages[idx];
         const stages = s.reportIns[type].stages;
-        const now = new Date().toISOString().slice(0, 16);
+        const now = nowBKK().slice(0, 16);
 
         if (field === 'start') {
             const prevStage = idx > 0 ? stages[idx - 1] : null;

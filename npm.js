@@ -25,14 +25,14 @@ const NPM = {
 
     init() {
         // Default date range: +/- 15 days
-        const now = new Date();
-        const from = new Date(now.getTime() - 15 * 86400000);
+        const todayStr = todayBKK();
+        const from = new Date(new Date(todayStr).getTime() - 15 * 86400000);
         this.dateFrom = from.toISOString().slice(0, 10);
-        this.dateTo = now.toISOString().slice(0, 10);
+        this.dateTo = todayStr;
         // EIR default: 30 days back
-        const eirFrom = new Date(now.getTime() - 30 * 86400000);
+        const eirFrom = new Date(new Date(todayStr).getTime() - 30 * 86400000);
         this.eirDateFrom = eirFrom.toISOString().slice(0, 10);
-        this.eirDateTo = now.toISOString().slice(0, 10);
+        this.eirDateTo = todayStr;
         this.renderShipmentList();
     },
 
@@ -173,18 +173,18 @@ const NPM = {
     },
 
     _resetEirDateFilter() {
-        const today = new Date();
-        const d1 = new Date(today); d1.setDate(today.getDate() - 30);
+        const todayStr = todayBKK();
+        const d1 = new Date(todayStr); d1.setDate(d1.getDate() - 30);
         this.eirDateFrom = d1.toISOString().slice(0, 10);
-        this.eirDateTo = today.toISOString().slice(0, 10);
+        this.eirDateTo = todayStr;
         this.renderEIRList();
     },
 
     _resetDateFilter() {
-        const today = new Date();
-        const d1 = new Date(today); d1.setDate(today.getDate() - 15);
+        const todayStr = todayBKK();
+        const d1 = new Date(todayStr); d1.setDate(d1.getDate() - 15);
         this.dateFrom = d1.toISOString().slice(0, 10);
-        this.dateTo = today.toISOString().slice(0, 10);
+        this.dateTo = todayStr;
         this.renderShipmentList();
     },
 
@@ -235,7 +235,7 @@ const NPM = {
                 <div class="form-grid">
                     <div class="form-group">
                         <label>${t('vesselName')} <span class="req">*</span></label>
-                        <input id="nf-vessel" type="text" placeholder="e.g. EVER GOLDEN">
+                        ${renderSS('nf-vessel', MASTERS.npmVessels.map(v => ({ value: v.name, label: v.name, active: true })), '', null)}
                     </div>
                     <div class="form-group">
                         <label>${t('voyageNo')} <span class="req">*</span></label>
@@ -244,7 +244,7 @@ const NPM = {
                     </div>
                     <div class="form-group">
                         <label>${t('etd')} <span class="req">*</span></label>
-                        <input id="nf-etd" type="datetime-local" value="${new Date(Date.now() + 3*86400000).toISOString().slice(0,16)}">
+                        <input id="nf-etd" type="datetime-local" value="${new Date(new Date(nowBKK()).getTime() + 3*86400000).toISOString().slice(0,16)}">
                     </div>
                     <div class="form-group">
                         <label>WBS</label>
@@ -269,19 +269,17 @@ const NPM = {
     },
 
     _bookingRowHTML(index) {
-        const shipperOptions = MASTERS.npmShippers.map(s => `<option value="${s.code}">${s.code} - ${s.name}</option>`).join('');
         const fwOptions = MASTERS.npmForwarders.map(f => `<option value="${f.code}">${f.code} - ${f.name}</option>`).join('');
+        const stsOptions = `<option value="E-MTY">E-MTY</option><option value="F-FCL">F-FCL</option>`;
         const docTypeOptions = MASTERS.docTypes.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
         return `<div class="booking-row" style="margin-bottom:12px;padding:12px;background:var(--gray-50);border-radius:6px;position:relative">
             <button onclick="this.parentElement.remove()" style="position:absolute;top:4px;right:8px;background:none;border:none;color:var(--danger);cursor:pointer;font-size:16px">&times;</button>
             <div class="form-grid">
-                <div class="form-group"><label>Shipper Code <span class="req">*</span></label><select class="nf-shippercode" onchange="NPM._syncShipperName(this)"><option value="">-- Select --</option>${shipperOptions}</select></div>
-                <div class="form-group"><label>${t('shipper')}</label><input class="nf-shipper" type="text" readonly style="background:var(--gray-100)"></div>
                 <div class="form-group"><label>FW Code <span class="req">*</span></label><select class="nf-fwcode" onchange="NPM._syncFwName(this)"><option value="">-- Select --</option>${fwOptions}</select></div>
                 <div class="form-group"><label>${t('bookingNo')} <span class="req">*</span></label><input class="nf-bookingno" type="text" placeholder="BKG-2026-XXXX"></div>
                 <div class="form-group"><label>${t('cargo')} <span class="req">*</span></label><select class="nf-cargo">${MASTERS.commodities.map(c => `<option>${c}</option>`).join('')}</select></div>
                 <div class="form-group"><label>${t('line')} <span class="req">*</span></label><select class="nf-line">${MASTERS.containerLines.map(l => `<option>${l.name}</option>`).join('')}</select></div>
-                <div class="form-group"><label>Sts <span class="req">*</span></label><select class="nf-sts">${docTypeOptions}</select></div>
+                <div class="form-group"><label>Sts <span class="req">*</span></label><select class="nf-sts">${stsOptions}</select></div>
                 <div class="form-group"><label>${t('size')} <span class="req">*</span></label><select class="nf-size">${MASTERS.containerSizes.map(s => `<option>${s}</option>`).join('')}</select></div>
                 <div class="form-group"><label>${t('qty')} <span class="req">*</span></label><input class="nf-qty" type="text" value="1" oninput="this.value=this.value.replace(/[^0-9]/g,'')"></div>
                 <div class="form-group"><label>Doc Type <span class="req">*</span></label><select class="nf-doctype">${docTypeOptions}</select></div>
@@ -313,7 +311,7 @@ const NPM = {
     },
 
     createShipment() {
-        const vessel = document.getElementById('nf-vessel').value.trim();
+        const vessel = (document.getElementById('nf-vessel').value || document.getElementById('ss-search-nf-vessel')?.value || '').trim();
         const voy = document.getElementById('nf-voy').value.trim();
         if (!vessel || !voy) { showToast(t('vesselAndVoyRequired'), 'error'); return; }
         if (!this.validateVoyNo(voy)) { showToast('Invalid Voy No. format. Expected: YYnnnN/S (e.g. 26004S)', 'error'); return; }
@@ -321,7 +319,7 @@ const NPM = {
         const num = npmShipments.length + 1;
         const yy = new Date().getFullYear().toString().slice(-2);
         const shipment = {
-            id: `12${yy}${String(num).padStart(6, '0')}`,
+            id: `1201${yy}${String(num).padStart(6, '0')}`,
             status: 'open',
             vesselName: vessel,
             voyNo: voy,
@@ -394,7 +392,7 @@ const NPM = {
         const num = npmShipments.length + 1;
         const yy = new Date().getFullYear().toString().slice(-2);
         npmShipments.unshift({
-            id: `12${yy}${String(num).padStart(6, '0')}`,
+            id: `1201${yy}${String(num).padStart(6, '0')}`,
             status: 'open',
             vesselName: 'ONE HARMONY',
             voyNo: '26005N',
@@ -703,7 +701,7 @@ const NPM = {
                 <div class="form-grid">
                     <div class="form-group">
                         <label>${t('vesselName')}</label>
-                        <input id="es-vessel" type="text" value="${s.vesselName}">
+                        ${renderSS('es-vessel', MASTERS.npmVessels.map(v => ({ value: v.name, label: v.name, active: true })), s.vesselName, null)}
                     </div>
                     <div class="form-group">
                         <label>${t('voyageNo')}</label>
@@ -732,7 +730,7 @@ const NPM = {
         if (!s) return;
         const voy = document.getElementById('es-voy').value.trim();
         if (voy && !this.validateVoyNo(voy)) { showToast('Invalid Voy No. format. Expected: YYnnnN/S (e.g. 26004S)', 'error'); return; }
-        s.vesselName = document.getElementById('es-vessel').value.trim();
+        s.vesselName = (document.getElementById('es-vessel').value || document.getElementById('ss-search-es-vessel')?.value || '').trim();
         s.voyNo = voy;
         s.etd = document.getElementById('es-etd').value;
         // Update WBS with voy
@@ -744,11 +742,11 @@ const NPM = {
     },
 
     showAddBooking(shipId) {
-        const shipperOpts = MASTERS.npmShippers.map(s => ({ value: s.code, label: `${s.code} — ${s.name}` }));
         const fwOpts = MASTERS.npmForwarders.map(f => ({ value: f.code, label: `${f.code} — ${f.name}` }));
         const cargoOpts = MASTERS.commodities.map(c => ({ value: c, label: c }));
         const lineOpts = MASTERS.containerLines.map(l => ({ value: l.name, label: l.name }));
         const docTypeOptions = MASTERS.docTypes.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+        const stsOptions = `<option value="E-MTY">E-MTY</option><option value="F-FCL">F-FCL</option>`;
         openModal(`
             <div class="modal-header">
                 <h2>${t('addBooking')}</h2>
@@ -756,13 +754,11 @@ const NPM = {
             </div>
             <div class="modal-body">
                 <div class="form-grid">
-                    <div class="form-group"><label>Shipper Code <span class="req">*</span></label>${renderSS('ab-shippercode', shipperOpts, '', 'NPM._onAbShipperChange')}</div>
-                    <div class="form-group"><label>${t('shipper')}</label><input id="ab-shipper" type="text" readonly style="background:var(--gray-100)"></div>
                     <div class="form-group"><label>FW Code <span class="req">*</span></label>${renderSS('ab-fwcode', fwOpts, '', null)}</div>
                     <div class="form-group"><label>${t('bookingNo')} <span class="req">*</span></label><input id="ab-bookingno" type="text" placeholder="BKG-2026-XXXX"></div>
                     <div class="form-group"><label>${t('cargo')} <span class="req">*</span></label>${renderSS('ab-cargo', cargoOpts, '', null)}</div>
                     <div class="form-group"><label>${t('line')} <span class="req">*</span></label>${renderSS('ab-line', lineOpts, '', null)}</div>
-                    <div class="form-group"><label>Sts <span class="req">*</span></label><select id="ab-sts">${docTypeOptions}</select></div>
+                    <div class="form-group"><label>Sts <span class="req">*</span></label><select id="ab-sts">${stsOptions}</select></div>
                     <div class="form-group"><label>${t('size')} <span class="req">*</span></label><select id="ab-size">${MASTERS.containerSizes.map(s => `<option>${s}</option>`).join('')}</select></div>
                     <div class="form-group"><label>${t('qty')} <span class="req">*</span></label><input id="ab-qty" type="text" value="1" oninput="this.value=this.value.replace(/[^0-9]/g,'')"></div>
                     <div class="form-group"><label>Doc Type <span class="req">*</span></label><select id="ab-doctype">${docTypeOptions}</select></div>
@@ -843,12 +839,11 @@ const NPM = {
         if (!s) return;
         const b = s.bookings.find(x => x.id === bookingId);
         if (!b) return;
-        const shipperOpts = MASTERS.npmShippers.map(sh => ({ value: sh.code, label: `${sh.code} — ${sh.name}` }));
         const fwOpts = MASTERS.npmForwarders.map(f => ({ value: f.code, label: `${f.code} — ${f.name}` }));
         const cargoOpts = MASTERS.commodities.map(c => ({ value: c, label: c }));
         const lineOpts = MASTERS.containerLines.map(l => ({ value: l.name, label: l.name }));
         const docTypeOptions = MASTERS.docTypes.map(d => `<option value="${d.id}" ${b.docType === d.id ? 'selected' : ''}>${d.name}</option>`).join('');
-        const stsOptions = MASTERS.docTypes.map(d => `<option value="${d.id}" ${b.sts === d.id ? 'selected' : ''}>${d.name}</option>`).join('');
+        const stsOptions = `<option value="E-MTY" ${b.sts === 'E-MTY' ? 'selected' : ''}>E-MTY</option><option value="F-FCL" ${b.sts === 'F-FCL' ? 'selected' : ''}>F-FCL</option>`;
         openModal(`
             <div class="modal-header">
                 <h2>${t('editBooking')} &mdash; ${b.bookingNo}</h2>
@@ -856,8 +851,6 @@ const NPM = {
             </div>
             <div class="modal-body">
                 <div class="form-grid">
-                    <div class="form-group"><label>Shipper Code <span class="req">*</span></label>${renderSS('eb-shippercode', shipperOpts, b.shipperCode, 'NPM._onEbShipperChange')}</div>
-                    <div class="form-group"><label>${t('shipper')}</label><input id="eb-shipper" type="text" value="${b.shipper}" readonly style="background:var(--gray-100)"></div>
                     <div class="form-group"><label>FW Code <span class="req">*</span></label>${renderSS('eb-fwcode', fwOpts, b.fwCode, null)}</div>
                     <div class="form-group"><label>${t('bookingNo')} <span class="req">*</span></label><input id="eb-bookingno" type="text" value="${b.bookingNo}"></div>
                     <div class="form-group"><label>${t('cargo')} <span class="req">*</span></label>${renderSS('eb-cargo', cargoOpts, b.cargo, null)}</div>
@@ -1000,7 +993,7 @@ const NPM = {
             fw: document.getElementById('ac-fw').value,
             inspected: false,
             inspectionStatus: 'pending',
-            uploadDate: new Date().toISOString(),
+            uploadDate: nowBKK(),
             eirOuts: [],
             eirIns: [],
         });
@@ -1256,7 +1249,7 @@ const NPM = {
     confirmLoadingList(shipId) {
         const s = npmShipments.find(x => x.id === shipId);
         if (!s || !this._pendingContainers) return;
-        const now = new Date().toISOString();
+        const now = nowBKK();
         // APPEND instead of replace
         const newContainers = this._pendingContainers.map(c => ({
             ...c,
@@ -1321,8 +1314,9 @@ const NPM = {
         const previewId = direction === 'out'
             ? `CO${now.getFullYear()}${eirCoCounter}`
             : `CI${now.getFullYear()}${eirCiCounter}`;
-        const dateStr = now.toISOString().slice(0, 10);
-        const timeStr = now.toISOString().slice(11, 16);
+        const bkkNow = nowBKK();
+        const dateStr = bkkNow.slice(0, 10);
+        const timeStr = bkkNow.slice(11, 16);
 
         openModal(`
             <div class="modal-header">
@@ -1360,7 +1354,6 @@ const NPM = {
                     <div style="display:flex;gap:16px;margin-top:8px">
                         <label style="display:flex;align-items:center;gap:4px;font-size:12px"><input type="checkbox" id="eir-notreturning"> ${t('containerNotReturning')}</label>
                         <label style="display:flex;align-items:center;gap:4px;font-size:12px"><input type="checkbox" id="eir-notclosed"> ${t('containerNotClosed')}</label>
-                        <label style="display:flex;align-items:center;gap:4px;font-size:12px"><input type="checkbox" id="eir-canceldoc"> ${t('cancelDocument')}</label>
                     </div>
                 </div>
 
@@ -1405,17 +1398,17 @@ const NPM = {
                         </div>
                         <div class="form-group">
                             <label>${t('lineAgent')}</label>
-                            <input id="eir-lineagent" type="text" value="${booking ? booking.line : ''}">
+                            ${renderSS('eir-lineagent', MASTERS.containerLines.map(l => ({ value: l.name, label: l.name, active: true })), booking ? booking.line : '', null)}
                         </div>
                         <div class="form-group">
                             <label>${t('forwarder')}</label>
-                            <input id="eir-forwarder" type="text" value="${booking ? (booking.fwCode || booking.fw) : ''}" placeholder="e.g. FW001">
+                            ${renderSS('eir-forwarder', MASTERS.npmForwarders.map(f => ({ value: f.code, label: f.code + ' — ' + f.name, active: true })), booking ? (booking.fwCode || booking.fw) : '', null)}
                         </div>
                         <div class="form-group">
                             <label>${t('containerStatus')}</label>
                             <select id="eir-containerstatus">
                                 <option>FCL</option>
-                                <option>LCL</option>
+                                <option>MTY</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -1424,7 +1417,7 @@ const NPM = {
                         </div>
                         <div class="form-group">
                             <label>Customer (Shipper)</label>
-                            <input id="eir-customer" type="text" value="${booking ? booking.shipper : ''}">
+                            ${renderSS('eir-customer', MASTERS.npmShippers.map(sh => ({ value: sh.name, label: sh.code + ' — ' + sh.name, active: true })), booking ? booking.shipper : '', null)}
                         </div>
                         <div class="form-group">
                             <label>${t('sealNo')}</label>
@@ -1432,7 +1425,7 @@ const NPM = {
                         </div>
                         <div class="form-group">
                             <label>${t('commodity')}</label>
-                            <input id="eir-commodity" type="text" value="${booking ? booking.cargo : ''}">
+                            ${renderSS('eir-commodity', MASTERS.commodities.map(c => ({ value: c, label: c, active: true })), booking ? booking.cargo : '', null)}
                         </div>
                         <div class="form-group">
                             <label>Vessel/Voy</label>
@@ -1460,26 +1453,26 @@ const NPM = {
                     <div style="display:flex;gap:12px;align-items:flex-end;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--gray-200)">
                         <div class="form-group" style="flex:1;max-width:300px">
                             <label>Shipment No.</label>
-                            <input id="eir-shipmentno" type="text" placeholder="Enter shipment no. to auto-fill truck & driver" oninput="NPM._lookupShipmentNo(this.value)">
+                            ${renderSS('eir-shipmentno', MASTERS.npmShipmentNos.map(sn => ({ value: sn.no, label: sn.no, active: true })), '', 'NPM._lookupShipmentNo')}
                         </div>
                         <span id="eir-shipmentno-status" style="font-size:12px;color:var(--gray-400);padding-bottom:10px"></span>
                     </div>
                     <div class="form-grid">
                         <div class="form-group">
                             <label>${t('truckHeadPlate')} <span class="req">*</span></label>
-                            <input id="eir-truckhead" type="text" placeholder="e.g. 83-0569">
+                            ${renderSS('eir-truckhead', MASTERS.npmTruckHeads.map(t => ({ value: t.plate, label: t.plate, active: true })), '', null)}
                         </div>
                         <div class="form-group">
                             <label>${t('truckTailPlate')}</label>
-                            <input id="eir-trucktail" type="text" placeholder="e.g. 83-1051">
+                            ${renderSS('eir-trucktail', MASTERS.npmTruckTails.map(t => ({ value: t.plate, label: t.plate, active: true })), '', null)}
                         </div>
                         <div class="form-group">
                             <label>${t('carrier')} <span class="req">*</span></label>
-                            <input id="eir-carrier" type="text">
+                            ${renderSS('eir-carrier', MASTERS.npmCarriers.map(c => ({ value: c.name, label: c.name, active: true })), '', null)}
                         </div>
                         <div class="form-group">
                             <label>${t('driver')} <span class="req">*</span></label>
-                            <input id="eir-driver" type="text">
+                            ${renderSS('eir-driver', MASTERS.npmDrivers.map(d => ({ value: d.name, label: d.name, active: true })), '', null)}
                         </div>
                         <div class="form-group">
                             <label>${t('officer')}</label>
@@ -1634,17 +1627,24 @@ const NPM = {
         if (!val || val.length < 3) { if (statusEl) statusEl.textContent = ''; return; }
         // Mock shipment-truck lookup data
         const mockTrucks = {
-            'SHP001': { truckHead: '83-0569', truckTail: '83-1051', carrier: 'Thai Transport Co.', driver: 'Somchai P.' },
-            'SHP002': { truckHead: '80-1234', truckTail: '80-5678', carrier: 'Bangkok Logistics', driver: 'Prasert K.' },
-            'SHP003': { truckHead: '72-9988', truckTail: '72-4455', carrier: 'Eastern Freight', driver: 'Wichai S.' },
+            '80001001': { truckHead: '83-0569', truckTail: '83-1051', carrier: 'ABC Transport', driver: 'Somchai P.' },
+            '80001002': { truckHead: '72-4321', truckTail: '72-4322', carrier: 'Fast Logistics', driver: 'Prasert K.' },
+            '80001003': { truckHead: '91-5678', truckTail: '91-5679', carrier: 'MTP Hauling', driver: 'Wichai S.' },
+            '80001004': { truckHead: '85-1234', truckTail: '85-1235', carrier: 'Fast Logistics', driver: 'Anon T.' },
+            '80001005': { truckHead: '77-9876', truckTail: '77-9877', carrier: 'MTP Hauling', driver: 'Wichai S.' },
         };
-        const match = mockTrucks[val.toUpperCase()];
+        const match = mockTrucks[val];
+        const ssSet = (id, value) => {
+            const hidden = document.getElementById(id);
+            const search = document.getElementById('ss-search-' + id);
+            if (hidden) hidden.value = value;
+            if (search) search.value = value;
+        };
         if (match) {
-            const h = id => document.getElementById(id);
-            if (h('eir-truckhead')) h('eir-truckhead').value = match.truckHead;
-            if (h('eir-trucktail')) h('eir-trucktail').value = match.truckTail;
-            if (h('eir-carrier')) h('eir-carrier').value = match.carrier;
-            if (h('eir-driver')) h('eir-driver').value = match.driver;
+            ssSet('eir-truckhead', match.truckHead);
+            ssSet('eir-trucktail', match.truckTail);
+            ssSet('eir-carrier', match.carrier);
+            ssSet('eir-driver', match.driver);
             if (statusEl) { statusEl.style.color = 'var(--success)'; statusEl.textContent = '✓ Found — auto-filled'; }
         } else {
             if (statusEl) { statusEl.style.color = 'var(--gray-400)'; statusEl.textContent = 'No match — enter manually'; }
@@ -2084,7 +2084,7 @@ const NPM = {
         });
 
         containerInspections[containerId] = {
-            completedAt: new Date().toISOString(),
+            completedAt: nowBKK(),
             inspector: inspector,
             damages: [...this._inspectionState.damages],
             items: INSPECTION_CHECKLIST.map(item => ({

@@ -235,7 +235,7 @@ SCM.createReportFromSelection = function() {
     document.querySelectorAll('.await-check:checked').forEach(cb => ids.push(cb.dataset.tsId));
     if (!ids.length) return;
 
-    const now = new Date();
+    const now = new Date(nowBKK());
     const yy = String(now.getFullYear()).slice(-2);
     const mm = String(now.getMonth() + 1).padStart(2, '0');
     const idx = scmSettlementReports.length + 1;
@@ -278,7 +278,7 @@ SCM.createReportFromSelection = function() {
     scmSettlementReports.push({
         id: reportNo,
         reportNo: reportNo,
-        createdAt: now.toISOString(),
+        createdAt: nowBKK(),
         period: `${yy}/${mm}`,
         site: items[0]?.site || 'BKK',
         status: 'pending_so',
@@ -295,8 +295,8 @@ SCM.createReportFromSelection = function() {
 // ── Create Report Modal (2A: tug schedules, 2B: filters) ─────────────────────
 
 SCM.showCreateReportModal = function() {
-    const today = new Date();
-    const d1 = new Date(today); d1.setDate(today.getDate() - 30);
+    const todayStr = todayBKK();
+    const d1 = new Date(todayStr); d1.setDate(d1.getDate() - 30);
 
     openModal(`
         <div class="modal-header">
@@ -319,7 +319,7 @@ SCM.showCreateReportModal = function() {
                 </div>
                 <div class="form-group" style="margin:0">
                     <label>${t('workDate')} To</label>
-                    <input type="date" id="sr-to" value="${today.toISOString().slice(0,10)}"
+                    <input type="date" id="sr-to" value="${todayStr}"
                         onchange="SCM._filterSettlementModal()">
                 </div>
                 <div class="form-group" style="margin:0;flex:1;min-width:140px">
@@ -473,7 +473,7 @@ SCM.createSettlementReport = function() {
         reportNo,
         site,
         period: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`,
-        createdAt: now.toISOString().slice(0, 16),
+        createdAt: nowBKK16(),
         status: 'pending_so',
         tugScheduleIds: [...selected],
         items,
@@ -501,9 +501,9 @@ SCM._renderSettlementReports = function() {
 
     // 2C: Default date range +/- 7 days
     if (!SCM._reportFilters._init) {
-        const now = new Date();
-        const d1 = new Date(now); d1.setDate(now.getDate() - 7);
-        const d2 = new Date(now); d2.setDate(now.getDate() + 7);
+        const todayStr = todayBKK();
+        const d1 = new Date(todayStr); d1.setDate(d1.getDate() - 7);
+        const d2 = new Date(todayStr); d2.setDate(d1.getDate() + 14);
         SCM._reportFilters.from = d1.toISOString().slice(0, 10);
         SCM._reportFilters.to   = d2.toISOString().slice(0, 10);
         SCM._reportFilters._init = true;
@@ -599,7 +599,7 @@ SCM.showSettlementReportDetail = function(id) {
     const hasSO    = report.soIds.length > 0;
 
     // Helper: minutes -> decimal hours string
-    const fmtHr = min => min ? (min / 60).toFixed(2) : '—';
+    const fmtHr = min => (min != null && min !== undefined) ? (min / 60).toFixed(2) : '—';
 
     // Helper: billing stage name -> ts-chip type class
     const stageType = name => {
@@ -695,11 +695,11 @@ SCM.showSettlementReportDetail = function(id) {
                     <div>Mat.no.</div>
                     <div>Vessel</div>
                     <div class="num">GRT</div>
-                    <div class="num">LOA (m)</div>
+                    <div class="num">LOA (FT)</div>
                     <div class="num">Draf(M)</div>
                     <div>Date</div>
                     <div>Time</div>
-                    <div>Activity</div>
+                    <div>Activity Operation</div>
                     <div>Port</div>
                     <div>Sales No.</div>
                 </div>
@@ -757,7 +757,7 @@ SCM.showSettlementReportDetail = function(id) {
                         <thead><tr>
                             <th style="width:28px"></th>
                             <th style="width:130px">Mat.no.</th>
-                            <th style="width:210px">Vessel</th>
+                            <th style="width:180px">Mat Description</th>
                             <th class="num" style="width:60px">Qty</th>
                             <th style="width:52px">UOM</th>
                             <th style="width:150px">WBS no.</th>
@@ -774,6 +774,14 @@ SCM.showSettlementReportDetail = function(id) {
                             <th class="num" style="width:122px">Com.Person/Unit</th>
                             <th class="num" style="width:90px">Discount%</th>
                             <th class="num" style="width:110px">Discount/Unit</th>
+                            <th class="num" style="width:52px">Start</th>
+                            <th class="num" style="width:52px">Sby1</th>
+                            <th class="num" style="width:52px">Wrk1</th>
+                            <th class="num" style="width:52px">Sby2</th>
+                            <th class="num" style="width:52px">Wrk2</th>
+                            <th class="num" style="width:52px">Sby3</th>
+                            <th class="num" style="width:52px">Wrk3</th>
+                            <th class="num" style="width:52px">End</th>
                             <th style="width:180px">Item Text</th>
                         </tr></thead>
                         <tbody>
@@ -858,15 +866,24 @@ SCM.showSettlementReportDetail = function(id) {
             // 2D: Billing hr shows total billing duration
             const totalBillingMin = item.billingMin || 0;
 
+            // Extract stage durations for billing (HH:MM)
+            const stgDurs = (s.reportIns?.billing?.stages || []).map(st => {
+                if (!st.startTime || !st.endTime || st.startTime === 'skipped' || st.endTime === 'skipped') return '';
+                const diff = Math.round((new Date(st.endTime) - new Date(st.startTime)) / 60000);
+                if (isNaN(diff) || diff <= 0) return '';
+                const h = Math.floor(diff / 60), m = diff % 60;
+                return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+            });
+
             html += `
                 <tr>
                     <td><button class="srd-toggle-btn" onclick="srdToggleStage(this,'${stageId}')">▼</button></td>
                     <td style="font-family:monospace;font-size:11px;font-weight:600">${s.bomItem?.id || '—'}</td>
-                    <td style="font-weight:600">${s.vessel?.name || '—'}</td>
+                    <td style="font-size:11px">${s.bomItem?.desc || '—'}</td>
                     <td class="num">${qtyCell}</td>
                     <td>${s.bomItem?.unit || 'Trip'}</td>
                     <td style="font-family:monospace;font-size:11px;color:#8a94a6">${s.bomItem?.wbs || '—'}</td>
-                    <td class="num">${fmtHr(item.actualMin)}</td>
+                    <td class="num">${fmtHr(item.actualMin || 0)}</td>
                     <td class="num" style="font-weight:700;color:var(--primary)">${fmtHr(totalBillingMin)}</td>
                     <td>${statusBadge}</td>
                     <td style="font-family:monospace;font-size:11px">${startStr}</td>
@@ -881,10 +898,18 @@ SCM.showSettlementReportDetail = function(id) {
                     <td class="num">${comPersonUnitCell}</td>
                     <td class="num">${discPctCell}</td>
                     <td class="num">${discUnitCell}</td>
-                    <td style="font-size:11px;color:#8a94a6">${s.vessel?.name || ''} — ${s.tug?.name || ''}</td>
+                    <td class="num" style="font-family:monospace;font-size:10px">${stgDurs[0] || ''}</td>
+                    <td class="num" style="font-family:monospace;font-size:10px">${stgDurs[1] || ''}</td>
+                    <td class="num" style="font-family:monospace;font-size:10px">${stgDurs[2] || ''}</td>
+                    <td class="num" style="font-family:monospace;font-size:10px">${stgDurs[3] || ''}</td>
+                    <td class="num" style="font-family:monospace;font-size:10px">${stgDurs[4] || ''}</td>
+                    <td class="num" style="font-family:monospace;font-size:10px">${stgDurs[5] || ''}</td>
+                    <td class="num" style="font-family:monospace;font-size:10px">${stgDurs[6] || ''}</td>
+                    <td class="num" style="font-family:monospace;font-size:10px">${stgDurs[7] || ''}</td>
+                    <td style="font-size:11px;color:#8a94a6">${s.bomItem?.desc || ''} — ${s.tug?.name || ''}</td>
                 </tr>
                 <tr class="srd-stage-row" id="${stageId}">
-                    <td colspan="21">
+                    <td colspan="29">
                         <div style="display:flex;align-items:center;gap:3px;flex-wrap:nowrap">
                             <span style="font-size:10px;color:#8a94a6;font-weight:600;margin-right:4px">Time Stages:</span>
                             ${chipHtml(s)}
@@ -1047,8 +1072,8 @@ SCM.createSalesOrder = function(reportId) {
         groups[tsId].items.push({ item, shipment: s, tugSchedule: ts });
     });
 
-    const now = new Date();
-    const yy = String(now.getFullYear()).slice(-2);
+    const bkkNow = nowBKK();
+    const yy = String(new Date(bkkNow).getFullYear()).slice(-2);
     let soIdx = scmSalesOrders.length;
 
     const newSOs = [];
@@ -1083,8 +1108,8 @@ SCM.createSalesOrder = function(reportId) {
                 orderId:        group.tugScheduleId,
                 _vesselName:    tsObj?.vessel?.name || '',
                 status:         'posted',
-                createdAt:      now.toISOString().slice(0, 16),
-                postedAt:       now.toISOString().slice(0, 16),
+                createdAt:      nowBKK16(),
+                postedAt:       nowBKK16(),
                 items: group.items.map(({ item, shipment: s }) => ({
                     shipmentId: s.id,
                     tugScheduleId: group.tugScheduleId,
@@ -1150,10 +1175,10 @@ SCM._renderSettlementSOs = function() {
 
     // Phase 4A: Initialize default date range if not set
     if (!SCM._soFilters._init) {
-        const now = new Date();
-        const d1 = new Date(now); d1.setDate(now.getDate() - 30);
+        const todayStr = todayBKK();
+        const d1 = new Date(todayStr); d1.setDate(d1.getDate() - 30);
         SCM._soFilters.from = d1.toISOString().slice(0, 10);
-        SCM._soFilters.to   = now.toISOString().slice(0, 10);
+        SCM._soFilters.to   = todayStr;
         SCM._soFilters._init = true;
     }
     const f = SCM._soFilters;
@@ -1350,7 +1375,7 @@ SCM.confirmCancelSO = function(soId) {
     // 1. Set SO status to cancelled, store reason and timestamp
     so.status = 'cancelled';
     so.cancelReason = reason;
-    so.cancelledAt = new Date().toISOString().slice(0, 16);
+    so.cancelledAt = nowBKK16();
 
     // 2. Update the related settlement report - mark tug schedule items as available
     const report = scmSettlementReports.find(r => r.id === so.reportId);
@@ -1522,7 +1547,7 @@ SCM.postToSAP = function(soId) {
     if (!so || so.status === 'posted' || so.status === 'cancelled') return;
 
     so.status   = 'posted';
-    so.postedAt = new Date().toISOString().slice(0, 16);
+    so.postedAt = nowBKK16();
 
     // Mark each shipment as settled
     so.items.forEach(item => {
